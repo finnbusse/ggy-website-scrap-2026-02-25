@@ -10,19 +10,16 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn, MofNCompleteColumn
-from rich.columns import Columns
-from rich.text import Text
 from rich.live import Live
-from rich.layout import Layout
 from rich.rule import Rule
 from rich import box
 
 # ─────────────────────────────────────────
-TARGET     = "https://grabbe-gymnasium.de"   # <── hier anpassen
+TARGET     = "https://grabbe-gymnasium.de"
 OUT_DIR    = "./mirror"
-THREADS    = 10
+THREADS    = 6
 TIMEOUT    = 15
-DELAY      = 0.3   # Sekunden zwischen Requests (fair use)
+DELAY      = 0.3
 # ─────────────────────────────────────────
 
 console = Console(highlight=False)
@@ -38,7 +35,7 @@ def banner():
     console.print()
 
 # ══════════════════════════════════════════════════════════
-#  PHASE 1 – CRAWL (nur Links sammeln, kein Download)
+#  PHASE 1 – CRAWL
 # ══════════════════════════════════════════════════════════
 
 def phase1_crawl():
@@ -47,7 +44,7 @@ def phase1_crawl():
 
     visited   = set()
     to_visit  = {TARGET}
-    assets    = set()   # css/js/img/pdf etc.
+    assets    = set()
     broken    = []
     by_type   = defaultdict(int)
     lock      = threading.Lock()
@@ -108,7 +105,6 @@ def phase1_crawl():
             time.sleep(DELAY)
             q.task_done()
 
-    # Live-Anzeige während Crawl
     with Live(console=console, refresh_per_second=4) as live:
         threads = [threading.Thread(target=crawl_worker, daemon=True) for _ in range(THREADS)]
         for t in threads:
@@ -122,10 +118,10 @@ def phase1_crawl():
             grid.add_column()
 
             left = Table(box=box.SIMPLE, show_header=False, padding=(0,1))
-            left.add_row("[cyan]📄 Pages found[/cyan]",    f"[bold white]{stats['pages']}[/bold white]")
+            left.add_row("[cyan]📄 Pages found[/cyan]",        f"[bold white]{stats['pages']}[/bold white]")
             left.add_row("[magenta]📦 Assets found[/magenta]", f"[bold white]{stats['assets']}[/bold white]")
-            left.add_row("[red]❌ Broken links[/red]",    f"[bold red]{stats['broken']}[/bold red]")
-            left.add_row("[dim]⏱ Elapsed[/dim]",          f"[dim]{elapsed}s[/dim]")
+            left.add_row("[red]❌ Broken links[/red]",         f"[bold red]{stats['broken']}[/bold red]")
+            left.add_row("[dim]⏱ Elapsed[/dim]",               f"[dim]{elapsed}s[/dim]")
 
             right = Panel(
                 f"[dim]Scanning:[/dim]\n[yellow]{stats['current']}[/yellow]",
@@ -139,21 +135,19 @@ def phase1_crawl():
         for t in threads:
             t.join()
 
-    # Summary Table
     console.print()
     console.print(Rule("[bold green]📊 Discovery Results[/bold green]", style="green"))
 
     summary = Table(box=box.ROUNDED, border_style="green", show_header=True, header_style="bold green")
     summary.add_column("Metric", style="cyan")
     summary.add_column("Value", justify="right", style="bold white")
-    summary.add_row("Total URLs found",  str(len(visited)))
-    summary.add_row("HTML Pages",        str(stats["pages"]))
-    summary.add_row("Assets (img/pdf/css/…)", str(stats["assets"]))
-    summary.add_row("Broken links",      f"[red]{stats['broken']}[/red]")
+    summary.add_row("Total URLs found",           str(len(visited)))
+    summary.add_row("HTML Pages",                 str(stats["pages"]))
+    summary.add_row("Assets (img/pdf/css/…)",     str(stats["assets"]))
+    summary.add_row("Broken links",               f"[red]{stats['broken']}[/red]")
     console.print(summary)
     console.print()
 
-    # File type breakdown
     type_table = Table(title="File Types", box=box.SIMPLE, border_style="dim")
     type_table.add_column("Extension", style="yellow")
     type_table.add_column("Count", justify="right")
@@ -190,7 +184,7 @@ def phase2_download(urls):
                 url = url_queue.get(timeout=2)
             except queue.Empty:
                 break
-            
+
             dest = url_to_path(url)
             with lock:
                 results["current"] = url.replace(TARGET, "")[:65] or "/"
@@ -205,7 +199,7 @@ def phase2_download(urls):
             try:
                 r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0"})
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
-                mode = "w" if "text" in r.headers.get("content-type","") else "wb"
+                mode = "w" if "text" in r.headers.get("content-type", "") else "wb"
                 content = r.text if mode == "w" else r.content
                 with open(dest, mode, encoding="utf-8" if mode == "w" else None) as f:
                     f.write(content)
@@ -259,7 +253,6 @@ if __name__ == "__main__":
 
     all_urls, broken = phase1_crawl()
 
-    # Confirm before downloading
     console.print(Panel(
         f"[bold]Found [cyan]{len(all_urls)}[/cyan] URLs total.[/bold]\n"
         f"Proceeding to download all files into [yellow]./mirror/[/yellow]…",
@@ -269,7 +262,6 @@ if __name__ == "__main__":
 
     dl = phase2_download(all_urls)
 
-    # ── Final Report ─────────────────────────────────────
     elapsed = str(datetime.now() - START_TIME).split(".")[0]
     console.print()
     console.print(Rule("[bold green]✅ Complete[/bold green]", style="green"))
@@ -277,14 +269,13 @@ if __name__ == "__main__":
     final = Table(box=box.ROUNDED, border_style="green")
     final.add_column("", style="cyan")
     final.add_column("", justify="right", style="bold white")
-    final.add_row("Total URLs crawled",   str(len(all_urls)))
-    final.add_row("✅ Downloaded",         f"[green]{dl['ok']}[/green]")
-    final.add_row("⏭️  Skipped (cached)",  str(dl["skip"]))
-    final.add_row("❌ Errors",             f"[red]{dl['err']}[/red]")
-    final.add_row("⏱️  Total time",        elapsed)
+    final.add_row("Total URLs crawled",    str(len(all_urls)))
+    final.add_row("✅ Downloaded",          f"[green]{dl['ok']}[/green]")
+    final.add_row("⏭️  Skipped (cached)",   str(dl["skip"]))
+    final.add_row("❌ Errors",              f"[red]{dl['err']}[/red]")
+    final.add_row("⏱️  Total time",         elapsed)
     console.print(final)
 
-    # JSON report
     report = {
         "timestamp": START_TIME.isoformat(),
         "target": TARGET,
