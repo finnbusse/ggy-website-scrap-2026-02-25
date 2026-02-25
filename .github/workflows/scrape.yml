@@ -3,10 +3,12 @@ name: 🕷️ Scrape School Website
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -19,24 +21,17 @@ jobs:
           python-version: '3.11'
 
       - name: 📦 Install dependencies
-        run: pip install tqdm
-
-      - name: 🕷️ Scrape with progress
-        run: python scrape.py
-
-      - name: 📊 Show summary
         run: |
-          echo "=== SCRAPE SUMMARY ==="
-          find ./mirror -type f | wc -l | xargs echo "Total files:"
-          find ./mirror -name "*.html" | wc -l | xargs echo "HTML pages:"
-          find ./mirror -name "*.pdf" | wc -l | xargs echo "PDFs:"
-          find ./mirror -name "*.jpg" -o -name "*.png" -o -name "*.gif" | wc -l | xargs echo "Images:"
-          du -sh ./mirror | xargs echo "Total size:"
+          python -m pip install --upgrade pip
+          pip install rich requests beautifulsoup4 lxml
+
+      - name: 🕷️ Run scraper
+        run: python scrape.py
 
       - name: 💾 Commit mirror to repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./mirror
-          git commit -m "🕷️ Scraped $(date +'%Y-%m-%d %H:%M') – $(find ./mirror -type f | wc -l) files" || echo "Nothing to commit"
+          git add ./mirror ./scrape-report.json
+          git commit -m "🕷️ Scrape $(date +'%Y-%m-%d %H:%M') – $(find ./mirror -type f | wc -l) files" || echo "Nothing to commit"
           git push
