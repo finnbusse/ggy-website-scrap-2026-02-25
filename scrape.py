@@ -1,5 +1,5 @@
 # scrape.py
-import os, re, json, time, queue, threading, mimetypes
+import os, json, time, queue, threading
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
@@ -15,11 +15,13 @@ from rich.rule import Rule
 from rich import box
 
 # ─────────────────────────────────────────
-TARGET     = "https://grabbe-gymnasium.de"
-OUT_DIR    = "./mirror"
-THREADS    = 6
-TIMEOUT    = 15
-DELAY      = 0.3
+TARGET           = "https://grabbe-gymnasium.de"
+OUT_DIR          = "./mirror"
+THREADS          = 6
+TIMEOUT          = 15
+DELAY            = 0.3
+MAX_FILE_MB      = 50
+SKIP_EXTENSIONS  = {".mp4", ".avi", ".mov", ".wmv", ".mkv", ".zip", ".tar", ".gz", ".iso"}
 # ─────────────────────────────────────────
 
 console = Console(highlight=False)
@@ -42,13 +44,11 @@ def phase1_crawl():
     console.print(Rule("[bold yellow]📡 Phase 1 — Discovery Crawl[/bold yellow]", style="yellow"))
     console.print("[dim]Crawling all links first — no downloads yet...[/dim]\n")
 
-    visited   = set()
-    to_visit  = {TARGET}
-    assets    = set()
-    broken    = []
-    by_type   = defaultdict(int)
-    lock      = threading.Lock()
-    q         = queue.Queue()
+    visited  = set()
+    broken   = []
+    by_type  = defaultdict(int)
+    lock     = threading.Lock()
+    q        = queue.Queue()
     q.put(TARGET)
 
     stats = {"pages": 0, "assets": 0, "broken": 0, "current": "–"}
@@ -90,14 +90,13 @@ def phase1_crawl():
                 else:
                     with lock:
                         stats["assets"] += 1
-                        assets.add(url)
 
                 if r.status_code >= 400:
                     with lock:
                         stats["broken"] += 1
                         broken.append((r.status_code, url))
 
-            except Exception as e:
+            except Exception:
                 with lock:
                     broken.append(("ERR", url))
                     stats["broken"] += 1
@@ -117,7 +116,7 @@ def phase1_crawl():
             grid.add_column()
             grid.add_column()
 
-            left = Table(box=box.SIMPLE, show_header=False, padding=(0,1))
+            left = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
             left.add_row("[cyan]📄 Pages found[/cyan]",        f"[bold white]{stats['pages']}[/bold white]")
             left.add_row("[magenta]📦 Assets found[/magenta]", f"[bold white]{stats['assets']}[/bold white]")
             left.add_row("[red]❌ Broken links[/red]",         f"[bold red]{stats['broken']}[/bold red]")
@@ -141,10 +140,10 @@ def phase1_crawl():
     summary = Table(box=box.ROUNDED, border_style="green", show_header=True, header_style="bold green")
     summary.add_column("Metric", style="cyan")
     summary.add_column("Value", justify="right", style="bold white")
-    summary.add_row("Total URLs found",           str(len(visited)))
-    summary.add_row("HTML Pages",                 str(stats["pages"]))
-    summary.add_row("Assets (img/pdf/css/…)",     str(stats["assets"]))
-    summary.add_row("Broken links",               f"[red]{stats['broken']}[/red]")
+    summary.add_row("Total URLs found",       str(len(visited)))
+    summary.add_row("HTML Pages",             str(stats["pages"]))
+    summary.add_row("Assets (img/pdf/…)",     str(stats["assets"]))
+    summary.add_row("Broken links",           f"[red]{stats['broken']}[/red]")
     console.print(summary)
     console.print()
 
@@ -172,7 +171,7 @@ def url_to_path(url):
 def phase2_download(urls):
     console.print(Rule("[bold cyan]⬇️  Phase 2 — Download[/bold cyan]", style="cyan"))
 
-    results = {"ok": 0, "skip": 0, "err": 0, "current": "–", "last_saved": "–"}
+    results = {"ok": 0, "skip": 0, "err": 0, "current": "–"}
     lock = threading.Lock()
     url_queue = queue.Queue()
     for u in urls:
@@ -197,6 +196,24 @@ def phase2_download(urls):
                 continue
 
             try:
+                # Extension check
+                ext = os.path.splitext(urlparse(url).path)[1].lower()
+                if ext in SKIP_EXTENSIONS:
+                    with lock:
+                        results["skip"] += 1
+                    url_queue.task_done()
+                    continue
+
+                # HEAD zuerst: Größe prüfen
+                head = requests.head(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0"}, allow_redirects=True)
+                size_bytes = int(head.headers.get("content-length", 0))
+                if size_bytes > MAX_FILE_MB * 1024 * 1024:
+                    with lock:
+                        results["skip"] += 1
+                    console.print(f"[dim]⏭ Skipping large file ({size_bytes//1024//1024}MB): {url.replace(TARGET, '')}[/dim]")
+                    url_queue.task_done()
+                    continue
+
                 r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0"})
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 mode = "w" if "text" in r.headers.get("content-type", "") else "wb"
@@ -205,7 +222,7 @@ def phase2_download(urls):
                     f.write(content)
                 with lock:
                     results["ok"] += 1
-                    results["last_saved"] = os.path.basename(dest)
+
             except Exception:
                 with lock:
                     results["err"] += 1
@@ -269,11 +286,11 @@ if __name__ == "__main__":
     final = Table(box=box.ROUNDED, border_style="green")
     final.add_column("", style="cyan")
     final.add_column("", justify="right", style="bold white")
-    final.add_row("Total URLs crawled",    str(len(all_urls)))
-    final.add_row("✅ Downloaded",          f"[green]{dl['ok']}[/green]")
-    final.add_row("⏭️  Skipped (cached)",   str(dl["skip"]))
-    final.add_row("❌ Errors",              f"[red]{dl['err']}[/red]")
-    final.add_row("⏱️  Total time",         elapsed)
+    final.add_row("Total URLs crawled",   str(len(all_urls)))
+    final.add_row("✅ Downloaded",         f"[green]{dl['ok']}[/green]")
+    final.add_row("⏭️  Skipped",           str(dl["skip"]))
+    final.add_row("❌ Errors",             f"[red]{dl['err']}[/red]")
+    final.add_row("⏱️  Total time",        elapsed)
     console.print(final)
 
     report = {
