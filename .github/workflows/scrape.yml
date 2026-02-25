@@ -1,0 +1,29 @@
+# .github/workflows/scrape.yml
+name: Scrape grabbe-gymnasium.de
+
+
+on:
+  workflow_dispatch: # manueller Start per Klick
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scrape Website
+        run: |
+          wget --mirror --convert-links --adjust-extension \
+            --page-requisites --no-parent --wait=1 \
+            -P ./mirror \
+            https://grabbe-gymnasium.de  # deine Schule hier
+      
+      - name: ZIP result
+        run: zip -r mirror.zip ./mirror
+      
+      - name: Upload as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-mirror
+          path: mirror.zip
+          retention-days: 7
