@@ -21,7 +21,6 @@ warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 TARGETS          = [
     "http://grabbe-gymnasium.de",
     "http://grabbe-gymnasium.info",
-    "https://grabbe-gymnasium.info",
 ]
 ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
 THREADS          = 6
@@ -39,6 +38,7 @@ CMSIMPLE_EXTRA_PATHS = [
     "feed.php",           # CMSimple RSS feed
     "robots.txt",
     "userfiles/",
+    "cms_hp/",
 ]
 # ─────────────────────────────────────────
 
