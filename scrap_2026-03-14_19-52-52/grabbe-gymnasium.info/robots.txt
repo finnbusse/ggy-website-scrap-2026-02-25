@@ -1,0 +1,8 @@
+# robots.txt zu http://www.grabbe-gymnasium.de/
+
+User-agent: *
+Disallow: /medien/
+Disallow: /vplan/
+Disallow: /kopieretat/
+Disallow: /vertretung/
+
