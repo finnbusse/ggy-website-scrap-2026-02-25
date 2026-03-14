@@ -1,11 +1,11 @@
 # scrape.py
-import os, json, time, queue, threading, re
+import os, json, time, queue, threading, re, warnings
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -13,6 +13,9 @@ from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeEl
 from rich.live import Live
 from rich.rule import Rule
 from rich import box
+
+# Suppress warning when lxml accidentally sees XML served without proper content-type
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 # ─────────────────────────────────────────
 TARGETS          = [
@@ -27,6 +30,17 @@ TIMEOUT          = 15
 DELAY            = 0.3
 MAX_FILE_MB      = 5000
 SKIP_EXTENSIONS  = set()
+
+# CMSimple CMS – extra seed paths to probe on every target host.
+# CMSimple often exposes a sitemap, RSS feed and a robots.txt
+# that reveal additional content URLs.
+CMSIMPLE_EXTRA_PATHS = [
+    "sitemap.xml",
+    "sitemap_index.xml",
+    "feed.php",           # CMSimple RSS feed
+    "robots.txt",
+    "userfiles/",
+]
 # ─────────────────────────────────────────
 
 console = Console(highlight=False)
@@ -54,10 +68,19 @@ def phase1_crawl():
     by_type  = defaultdict(int)
     lock     = threading.Lock()
     q        = queue.Queue()
+
+    # Seed the queue with the main targets
     for t in TARGETS:
         q.put(t)
 
-    stats = {"pages": 0, "assets": 0, "broken": 0, "current": "–"}
+    # CMSimple CMS – probe extra paths known to exist on CMSimple installations
+    # (sitemap, RSS feed, robots.txt, userfiles root)
+    for target in TARGETS:
+        base = target.rstrip("/")
+        for path in CMSIMPLE_EXTRA_PATHS:
+            q.put(f"{base}/{path}")
+
+    stats = {"pages": 0, "assets": 0, "broken": 0, "xml": 0, "current": "–"}
 
     def crawl_worker():
         while True:
@@ -74,25 +97,47 @@ def phase1_crawl():
 
             try:
                 r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0 (compatible; SchoolScraper/1.0)"})
-                ct = r.headers.get("content-type", "")
+                ct = r.headers.get("content-type", "").lower()
                 ext = urlparse(url).path.split(".")[-1].lower() if "." in urlparse(url).path else "html"
 
                 with lock:
                     stats["current"] = url[:70]
                     by_type[ext] += 1
 
-                if "text/html" in ct:
+                # Choose the right parser: lxml for HTML, lxml-xml for XML/Atom/RSS
+                is_xml = any(x in ct for x in ("text/xml", "application/xml",
+                                                "application/rss+xml", "application/atom+xml",
+                                                "application/sitemap+xml"))
+
+                if "text/html" in ct or is_xml:
+                    parser = "xml" if is_xml else "lxml"
                     with lock:
-                        stats["pages"] += 1
-                    soup = BeautifulSoup(r.text, "lxml")
-                    for tag in soup.find_all(["a", "link", "script", "img"]):
-                        href = tag.get("href") or tag.get("src") or ""
-                        full = urljoin(url, href).split("#")[0]
-                        if urlparse(full).netloc not in ALLOWED_DOMAINS:
-                            continue
-                        with lock:
-                            if full not in visited:
-                                q.put(full)
+                        if is_xml:
+                            stats["xml"] += 1
+                        else:
+                            stats["pages"] += 1
+                    soup = BeautifulSoup(r.text, parser)
+
+                    if is_xml:
+                        # Sitemap / RSS / Atom: extract <loc> and <link> elements
+                        for loc in soup.find_all("loc"):
+                            full = loc.get_text(strip=True).split("#")[0]
+                            if urlparse(full).netloc in ALLOWED_DOMAINS:
+                                with lock:
+                                    if full not in visited:
+                                        q.put(full)
+                    else:
+                        # HTML page – follow all link-bearing tags including
+                        # HTML5 media and CMSimple's data-src lazy-load pattern
+                        for tag in soup.find_all(["a", "link", "script", "img",
+                                                  "source", "video", "audio", "iframe"]):
+                            href = tag.get("href") or tag.get("src") or tag.get("data-src") or ""
+                            full = urljoin(url, href).split("#")[0]
+                            if urlparse(full).netloc not in ALLOWED_DOMAINS:
+                                continue
+                            with lock:
+                                if full not in visited:
+                                    q.put(full)
                 else:
                     with lock:
                         stats["assets"] += 1
@@ -116,20 +161,35 @@ def phase1_crawl():
             t.start()
 
         while any(t.is_alive() for t in threads):
-            elapsed = (datetime.now() - START_TIME).seconds
+            elapsed_secs = max(1, (datetime.now() - START_TIME).total_seconds())
+
+            with lock:
+                visited_count = len(visited)
+                pages         = stats["pages"]
+                assets        = stats["assets"]
+                xml_count     = stats["xml"]
+                broken_count  = stats["broken"]
+                current       = stats["current"]
+
+            queue_size = q.qsize()
+            speed      = visited_count / elapsed_secs
 
             grid = Table.grid(expand=True)
             grid.add_column()
             grid.add_column()
 
             left = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
-            left.add_row("[cyan]📄 Pages found[/cyan]",        f"[bold white]{stats['pages']}[/bold white]")
-            left.add_row("[magenta]📦 Assets found[/magenta]", f"[bold white]{stats['assets']}[/bold white]")
-            left.add_row("[red]❌ Broken links[/red]",         f"[bold red]{stats['broken']}[/bold red]")
-            left.add_row("[dim]⏱ Elapsed[/dim]",               f"[dim]{elapsed}s[/dim]")
+            left.add_row("[cyan]🌐 URLs visited[/cyan]",   f"[bold white]{visited_count}[/bold white]")
+            left.add_row("[cyan]📄 Pages (HTML)[/cyan]",   f"[bold white]{pages}[/bold white]")
+            left.add_row("[blue]📋 XML / Feeds[/blue]",    f"[bold white]{xml_count}[/bold white]")
+            left.add_row("[magenta]📦 Assets[/magenta]",   f"[bold white]{assets}[/bold white]")
+            left.add_row("[red]❌ Broken links[/red]",     f"[bold red]{broken_count}[/bold red]")
+            left.add_row("[dim]🔗 Queue remaining[/dim]",  f"[dim]{queue_size}[/dim]")
+            left.add_row("[dim]🚀 Speed[/dim]",            f"[dim]{speed:.1f} URLs/s[/dim]")
+            left.add_row("[dim]⏱ Elapsed[/dim]",           f"[dim]{int(elapsed_secs)}s[/dim]")
 
             right = Panel(
-                f"[dim]Scanning:[/dim]\n[yellow]{stats['current']}[/yellow]",
+                f"[dim]Scanning:[/dim]\n[yellow]{current}[/yellow]",
                 title="[bold]🔍 Current URL[/bold]", border_style="dim", width=60
             )
 
@@ -146,10 +206,11 @@ def phase1_crawl():
     summary = Table(box=box.ROUNDED, border_style="green", show_header=True, header_style="bold green")
     summary.add_column("Metric", style="cyan")
     summary.add_column("Value", justify="right", style="bold white")
-    summary.add_row("Total URLs found",       str(len(visited)))
-    summary.add_row("HTML Pages",             str(stats["pages"]))
-    summary.add_row("Assets (img/pdf/…)",     str(stats["assets"]))
-    summary.add_row("Broken links",           f"[red]{stats['broken']}[/red]")
+    summary.add_row("Total URLs found",   str(len(visited)))
+    summary.add_row("HTML Pages",         str(stats["pages"]))
+    summary.add_row("XML / Feeds",        str(stats["xml"]))
+    summary.add_row("Assets (img/pdf/…)", str(stats["assets"]))
+    summary.add_row("Broken links",       f"[red]{stats['broken']}[/red]")
     console.print(summary)
     console.print()
 
@@ -315,7 +376,7 @@ if __name__ == "__main__":
         "skipped": dl["skip"],
         "errors": dl["err"],
         "broken_links": broken[:50],
-        "duration_seconds": (datetime.now() - START_TIME).seconds
+        "duration_seconds": int((datetime.now() - START_TIME).total_seconds()),
     }
     with open("scrape-report.json", "w") as f:
         json.dump(report, f, indent=2)
