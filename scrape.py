@@ -24,7 +24,6 @@ TARGETS          = [
     "https://grabbe-gymnasium.info",
 ]
 ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
-OUT_DIR          = "./mirror"
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
@@ -45,6 +44,8 @@ CMSIMPLE_EXTRA_PATHS = [
 
 console = Console(highlight=False)
 START_TIME = datetime.now()
+SCRAP_DIR  = f"./scrap_{START_TIME.strftime('%Y-%m-%d_%H-%M-%S')}"
+OUT_DIR    = SCRAP_DIR
 
 def banner():
     console.print(Panel.fit(
@@ -331,6 +332,23 @@ def phase2_download(urls):
     return results
 
 # ══════════════════════════════════════════════════════════
+#  SITEMAP GENERATOR
+# ══════════════════════════════════════════════════════════
+
+def generate_sitemap(urls, scrap_dir):
+    """Write a standard sitemap.xml listing every discovered URL."""
+    os.makedirs(scrap_dir, exist_ok=True)
+    sitemap_path = os.path.join(scrap_dir, "sitemap.xml")
+    with open(sitemap_path, "w", encoding="utf-8") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        f.write('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
+        for url in sorted(urls):
+            escaped = url.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            f.write(f"  <url><loc>{escaped}</loc></url>\n")
+        f.write("</urlset>\n")
+    console.print(f"[dim]Sitemap saved to {sitemap_path} ({len(urls)} URLs)[/dim]")
+
+# ══════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════
 
@@ -339,9 +357,13 @@ if __name__ == "__main__":
 
     all_urls, broken = phase1_crawl()
 
+    # Generate sitemap inside the scrap dir immediately after discovery
+    os.makedirs(SCRAP_DIR, exist_ok=True)
+    generate_sitemap(all_urls, SCRAP_DIR)
+
     console.print(Panel(
         f"[bold]Found [cyan]{len(all_urls)}[/cyan] URLs total.[/bold]\n"
-        f"Proceeding to download all files into [yellow]./mirror/[/yellow]…",
+        f"Proceeding to download all files into [yellow]{SCRAP_DIR}/[/yellow]…",
         border_style="cyan", title="[bold]Ready to Download[/bold]"
     ))
     console.print()
@@ -364,6 +386,7 @@ if __name__ == "__main__":
 
     report = {
         "timestamp": START_TIME.isoformat(),
+        "scrap_dir": SCRAP_DIR,
         "targets": TARGETS,
         "total_urls": len(all_urls),
         "downloaded": dl["ok"],
@@ -372,8 +395,12 @@ if __name__ == "__main__":
         "broken_links": broken[:50],
         "duration_seconds": int((datetime.now() - START_TIME).total_seconds()),
     }
+    # Save report both in the scrap dir and at the repo root for convenience
+    report_path = os.path.join(SCRAP_DIR, "scrape-report.json")
+    with open(report_path, "w") as f:
+        json.dump(report, f, indent=2)
     with open("scrape-report.json", "w") as f:
         json.dump(report, f, indent=2)
 
-    console.print("\n[dim]Report saved to scrape-report.json[/dim]")
-    console.print(f"[bold green]All done! Mirror in ./mirror/[/bold green]\n")
+    console.print(f"\n[dim]Report saved to {report_path} and scrape-report.json[/dim]")
+    console.print(f"[bold green]All done! Mirror in {SCRAP_DIR}/[/bold green]\n")
