@@ -28,7 +28,7 @@ OUT_DIR          = "./mirror"
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
-MAX_FILE_MB      = 5000
+MAX_FILE_MB      = 95   # GitHub's hard limit is 100 MB; stay 5 MB below for safety
 SKIP_EXTENSIONS  = set()
 
 # CMSimple CMS – extra seed paths to probe on every target host.
