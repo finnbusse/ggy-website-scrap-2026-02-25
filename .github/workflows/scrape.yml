@@ -9,6 +9,7 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -34,11 +35,17 @@ jobs:
       - name: 🕷️ Run scraper
         run: python -u scrape.py
 
-      - name: 💾 Commit mirror to repo
+      - name: 💾 Commit scrap folder to repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./mirror ./scrape-report.json
-          git commit -m "🕷️ Scrape $(date +'%Y-%m-%d %H:%M') – $(find ./mirror -type f | wc -l) files" || echo "Nothing to commit"
-          git pull --rebase origin main
-          git push
+          git add ./scrap_* ./scrape-report.json
+          git commit -m "🕷️ Scrape $(date +'%Y-%m-%d %H:%M') – $(find ./scrap_* -type f 2>/dev/null | wc -l) files" || echo "Nothing to commit"
+          # Retry push up to 5 times with rebase to handle concurrent updates
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push && echo "Push succeeded on attempt $i" && break || {
+              echo "Push attempt $i failed, retrying in 15s..."
+              sleep 15
+            }
+          done
+          git log --oneline -1 || true
