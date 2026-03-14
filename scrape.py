@@ -1,5 +1,5 @@
 # scrape.py
-import os, json, time, queue, threading, re, warnings
+import os, json, time, queue, threading, re, warnings, tarfile, shutil
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
@@ -18,11 +18,36 @@ from rich import box
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 # ─────────────────────────────────────────
-TARGETS          = [
+# A realistic Firefox UA so servers don't block or serve degraded content.
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) "
+    "Gecko/20100101 Firefox/124.0"
+)
+
+TARGETS = [
     "http://grabbe-gymnasium.de",
+    "http://www.grabbe-gymnasium.de",
     "http://grabbe-gymnasium.info",
+    "http://www.grabbe-gymnasium.info",
+    "https://www.grabbe-gymnasium.info",
 ]
-ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
+
+# Build the allowed-domain set: include both bare and www. variants of every
+# target host so that links like https://www.grabbe-gymnasium.info/... are
+# followed even when the target was seeded as grabbe-gymnasium.info.
+def _build_allowed_domains(targets):
+    domains = set()
+    for t in targets:
+        netloc = urlparse(t).netloc
+        domains.add(netloc)
+        # Ensure both www. and bare version are always accepted
+        if netloc.startswith("www."):
+            domains.add(netloc[4:])
+        else:
+            domains.add("www." + netloc)
+    return domains
+
+ALLOWED_DOMAINS  = _build_allowed_domains(TARGETS)
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
@@ -97,7 +122,13 @@ def phase1_crawl():
                 visited.add(url)
 
             try:
-                r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0 (compatible; SchoolScraper/1.0)"})
+                r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT},
+                                 allow_redirects=True)
+                # Use the final URL after redirects as the base for resolving
+                # relative links – this is crucial when a bare domain redirects
+                # to its www. counterpart (e.g. grabbe-gymnasium.info →
+                # www.grabbe-gymnasium.info).
+                effective_url = r.url
                 ct = r.headers.get("content-type", "").lower()
                 ext = urlparse(url).path.split(".")[-1].lower() if "." in urlparse(url).path else "html"
 
@@ -129,11 +160,17 @@ def phase1_crawl():
                                         q.put(full)
                     else:
                         # HTML page – follow all link-bearing tags including
-                        # HTML5 media and CMSimple's data-src lazy-load pattern
+                        # HTML5 media, image maps (<area>) and CMSimple's
+                        # data-src lazy-load pattern.
                         for tag in soup.find_all(["a", "link", "script", "img",
-                                                  "source", "video", "audio", "iframe"]):
-                            href = tag.get("href") or tag.get("src") or tag.get("data-src") or ""
-                            full = urljoin(url, href).split("#")[0]
+                                                  "source", "video", "audio",
+                                                  "iframe", "area"]):
+                            href = (tag.get("href") or tag.get("src") or
+                                    tag.get("data-src") or "")
+                            # Resolve relative links against the *effective* URL
+                            # (after HTTP redirects) so that pages served from
+                            # www. subdomains link-resolve correctly.
+                            full = urljoin(effective_url, href).split("#")[0]
                             if urlparse(full).netloc not in ALLOWED_DOMAINS:
                                 continue
                             with lock:
@@ -285,7 +322,7 @@ def phase2_download(urls):
                 # stays constant regardless of file size, and so the read
                 # timeout is enforced between chunks (stalled-server protection).
                 r = requests.get(url, timeout=DOWNLOAD_TIMEOUT, stream=True,
-                                 headers={"User-Agent": "Mozilla/5.0"})
+                                 headers={"User-Agent": USER_AGENT})
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 with open(dest, "wb") as f:
                     for chunk in r.iter_content(chunk_size=1024 * 1024):
@@ -349,6 +386,32 @@ def generate_sitemap(urls, scrap_dir):
     console.print(f"[dim]Sitemap saved to {sitemap_path} ({len(urls)} URLs)[/dim]")
 
 # ══════════════════════════════════════════════════════════
+#  ARCHIVE
+# ══════════════════════════════════════════════════════════
+
+def archive_scrap_dir(scrap_dir):
+    """Pack the entire scrap directory into a .tar.gz archive next to it.
+
+    Storing thousands of loose files in a git repository causes GitHub's
+    directory view to truncate at 1 000 entries.  One archive per run keeps
+    the repository clean while preserving every scraped byte.  The .tar.gz
+    extension is already tracked via Git LFS in .gitattributes, so large
+    archives are handled transparently.
+    """
+    archive_path = scrap_dir.rstrip("/").rstrip(os.sep) + ".tar.gz"
+    console.print(f"[dim]Archiving {scrap_dir} → {archive_path} …[/dim]")
+    with tarfile.open(archive_path, "w:gz") as tar:
+        tar.add(scrap_dir, arcname=os.path.basename(scrap_dir))
+    size_mb = os.path.getsize(archive_path) / (1024 * 1024)
+    console.print(f"[dim]Archive created: {archive_path} ({size_mb:.1f} MB)[/dim]")
+
+    # Remove the raw directory so only the archive is committed to git.
+    shutil.rmtree(scrap_dir)
+    console.print(f"[dim]Removed raw directory {scrap_dir}[/dim]")
+
+    return archive_path
+
+# ══════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════
 
@@ -360,6 +423,8 @@ if __name__ == "__main__":
     # Generate sitemap inside the scrap dir immediately after discovery
     os.makedirs(SCRAP_DIR, exist_ok=True)
     generate_sitemap(all_urls, SCRAP_DIR)
+    # Also write a copy at the repo root for easy access without extracting the archive
+    generate_sitemap(all_urls, ".")
 
     console.print(Panel(
         f"[bold]Found [cyan]{len(all_urls)}[/cyan] URLs total.[/bold]\n"
@@ -388,6 +453,7 @@ if __name__ == "__main__":
         "timestamp": START_TIME.isoformat(),
         "scrap_dir": SCRAP_DIR,
         "targets": TARGETS,
+        "allowed_domains": sorted(ALLOWED_DOMAINS),
         "total_urls": len(all_urls),
         "downloaded": dl["ok"],
         "skipped": dl["skip"],
@@ -403,4 +469,10 @@ if __name__ == "__main__":
         json.dump(report, f, indent=2)
 
     console.print(f"\n[dim]Report saved to {report_path} and scrape-report.json[/dim]")
-    console.print(f"[bold green]All done! Mirror in {SCRAP_DIR}/[/bold green]\n")
+
+    # Archive the raw scrap directory into a single .tar.gz file.
+    # This keeps the git repository tidy: GitHub's directory view truncates
+    # at 1 000 files, so committing 9 000+ loose files is problematic.
+    archive_path = archive_scrap_dir(SCRAP_DIR)
+
+    console.print(f"[bold green]All done! Archive: {archive_path}[/bold green]\n")
