@@ -1,5 +1,3 @@
 __pycache__/
-# Raw scrap directories are archived into .tar.gz before commit; don't track loose files
-scrap_*/
-# Legacy mirror directory (use scrap archives instead)
+# Legacy mirror directory (superseded by per-run scrap_* directories)
 mirror/

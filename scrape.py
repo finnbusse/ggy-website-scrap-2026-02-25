@@ -392,11 +392,11 @@ def generate_sitemap(urls, scrap_dir):
 def archive_scrap_dir(scrap_dir):
     """Pack the entire scrap directory into a .tar.gz archive next to it.
 
-    Storing thousands of loose files in a git repository causes GitHub's
-    directory view to truncate at 1 000 entries.  One archive per run keeps
-    the repository clean while preserving every scraped byte.  The .tar.gz
-    extension is already tracked via Git LFS in .gitattributes, so large
-    archives are handled transparently.
+    The loose files in the scrap directory are also committed to git so that
+    individual files are browsable on GitHub.  The archive provides a
+    convenient single-file download of the entire mirror.  The .tar.gz
+    extension is tracked via Git LFS in .gitattributes so large archives are
+    handled transparently.
     """
     archive_path = scrap_dir.rstrip("/").rstrip(os.sep) + ".tar.gz"
     console.print(f"[dim]Archiving {scrap_dir} → {archive_path} …[/dim]")
@@ -405,9 +405,8 @@ def archive_scrap_dir(scrap_dir):
     size_mb = os.path.getsize(archive_path) / (1024 * 1024)
     console.print(f"[dim]Archive created: {archive_path} ({size_mb:.1f} MB)[/dim]")
 
-    # Remove the raw directory so only the archive is committed to git.
-    shutil.rmtree(scrap_dir)
-    console.print(f"[dim]Removed raw directory {scrap_dir}[/dim]")
+    # Keep the raw directory – it is committed alongside the archive so that
+    # every scraped file is individually browsable in the GitHub repository.
 
     return archive_path
 
