@@ -1,36 +1,24 @@
 {
-  "timestamp": "2026-03-14T19:52:52.571476",
-  "scrap_dir": "./scrap_2026-03-14_19-52-52",
+  "timestamp": "2026-03-14T22:57:30.480429",
+  "scrap_dir": "./scrap_2026-03-14_22-57-30",
   "targets": [
     "http://grabbe-gymnasium.de",
+    "http://www.grabbe-gymnasium.de",
     "http://grabbe-gymnasium.info",
-    "https://grabbe-gymnasium.info"
+    "http://www.grabbe-gymnasium.info",
+    "https://www.grabbe-gymnasium.info"
   ],
-  "total_urls": 9002,
-  "downloaded": 8853,
-  "skipped": 149,
-  "errors": 0,
+  "allowed_domains": [
+    "grabbe-gymnasium.de",
+    "grabbe-gymnasium.info",
+    "www.grabbe-gymnasium.de",
+    "www.grabbe-gymnasium.info"
+  ],
+  "total_urls": 14399,
+  "downloaded": 11871,
+  "skipped": 2527,
+  "errors": 1,
   "broken_links": [
-    [
-      404,
-      "http://grabbe-gymnasium.de/sitemap.xml"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/feed.php"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/sitemap_index.xml"
-    ],
-    [
-      "ERR",
-      "https://grabbe-gymnasium.info"
-    ],
-    [
-      403,
-      "http://grabbe-gymnasium.de/userfiles/"
-    ],
     [
       404,
       "http://grabbe-gymnasium.info/sitemap.xml"
@@ -48,24 +36,80 @@
       "http://grabbe-gymnasium.info/userfiles/"
     ],
     [
-      "ERR",
-      "https://grabbe-gymnasium.info/sitemap.xml"
+      404,
+      "http://grabbe-gymnasium.de/sitemap.xml"
+    ],
+    [
+      403,
+      "http://grabbe-gymnasium.de/userfiles/"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/sitemap_index.xml"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/feed.php"
+    ],
+    [
+      403,
+      "http://www.grabbe-gymnasium.de/userfiles/"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/sitemap_index.xml"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/feed.php"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.de/sitemap.xml"
     ],
     [
       "ERR",
-      "https://grabbe-gymnasium.info/sitemap_index.xml"
+      "https://www.grabbe-gymnasium.info/sitemap_index.xml"
     ],
     [
       "ERR",
-      "https://grabbe-gymnasium.info/feed.php"
+      "https://www.grabbe-gymnasium.info/robots.txt"
     ],
     [
       "ERR",
-      "https://grabbe-gymnasium.info/robots.txt"
+      "https://www.grabbe-gymnasium.info/cms_hp/"
     ],
     [
       "ERR",
-      "https://grabbe-gymnasium.info/userfiles/"
+      "https://www.grabbe-gymnasium.info"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/userfiles/"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/feed.php"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.de/feed.php"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.de/sitemap_index.xml"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/sitemap.xml"
+    ],
+    [
+      403,
+      "http://www.grabbe-gymnasium.info/userfiles/"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/sitemap.xml"
     ],
     [
       404,
@@ -77,140 +121,104 @@
     ],
     [
       404,
+      "http://grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Thin.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/cms_hp/kunst/images/wortmann_2015.jpg"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/cms_hp/kunst/image"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/cms_hp/kunst/images/Kunst_Wortmann_2015.jpg"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/oberstufe2/images/file/LuPO_SV.pdf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/userfiles/downloads/...Elterninfobriefe/"
+    ],
+    [
+      500,
+      "http://grabbe-gymnasium.de/cms_hp/wpu/?Mathe-Informatik"
+    ],
+    [
+      500,
+      "http://grabbe-gymnasium.de/cms_hp/informatik/"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Thin.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/cms_hp/kunst/image"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/cms_hp/kunst/images/wortmann_2015.jpg"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/cms_hp/kunst/images/Kunst_Wortmann_2015.jpg"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.de/oberstufe2/images/file/LuPO_SV.pdf"
+    ],
+    [
+      404,
       "http://grabbe-gymnasium.de/userfiles/downloads/...Elterninfobriefe/"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/---Anmeldung_Klasse_5"
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/---Archiv"
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/---Datenschutz-Infos"
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Thin.ttf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/---Eltern-Infobriefe"
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Light.ttf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/---HA-Betreuung"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/---Herkunftssprach-licher_Unterricht"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/---Oberstufe"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/2526_Betirittserklaerung_Alumniverein.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Abmeldung_RU_Formular.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Anleitung_Webuntis_fuer_Eltern.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Anmeldung_RU_Formular.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Antrag auf Abmeldung - Sek I_14.07.25.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Arbeitsgemeinschaften AGs_25-26-Aushang.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/E-Mail-Knigge.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Einwilligung_Daten_12_2024.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Elternsprechtag_1_25_26_Raeume_und_Sprechzeiten.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Fahrtkosten-Antrag.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Grabbe_Materialliste_2025_26.pages.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Hausordnung_2024.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Krankmeldung_Klasse 5-13.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Lehrer_Email_Faecher_Liste_27.01.2025.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Mensa-Anmeldung Abo ab 2025-11.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Mensa_Preise_August_24.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Neuaufnahme_Klasse 6-13_Formular_digital_auszufuellen.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Richtlinien Verhalten bei Braenden_2022.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Schulbuecher 2025_26.jpeg"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Schulpflicht Aufklaerung.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Stundenraster_Grabbe.jpg"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/Tablet_Knigge_am_Grabbe.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/userfiles/WP II 2026 Wahlzettel G9-Kursbeschreibungen Stand 26 Feb 2026.pdf"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/cms_hp/css/core.css"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/stylesheet.css"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/cms_hp/plugins/convert_h1split/css/stylesheet.css"
+      "http://www.grabbe-gymnasium.info/cms_hp/kunst/images/wortmann_2015.jpg"
     ]
   ],
-  "duration_seconds": 1812
+  "duration_seconds": 522
 }
