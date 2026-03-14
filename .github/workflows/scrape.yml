@@ -39,16 +39,61 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Add loose files (browsable on GitHub) and the .tar.gz archive
-          # (single-file download).  Both are committed so users can browse
-          # individual files in the GitHub UI and also download the full mirror.
-          git add ./scrap_*/ ./scrap_*.tar.gz ./scrape-report.json ./sitemap.xml
-          git commit -m "🕷️ Scrape $(date +'%Y-%m-%d %H:%M') – $(find ./scrap_*/ -type f 2>/dev/null | wc -l) files + archive" || echo "Nothing to commit"
-          # Retry push up to 5 times with rebase to handle concurrent updates
-          for i in 1 2 3 4 5; do
-            git pull --rebase origin main && git push && echo "Push succeeded on attempt $i" && break || {
-              echo "Push attempt $i failed, retrying in 15s..."
-              sleep 15
-            }
+
+          TIMESTAMP=$(date +'%Y-%m-%d %H:%M')
+          FILE_COUNT=$(find ./scrap_*/ -type f 2>/dev/null | wc -l)
+          # Number of loose files to stage per commit/push.
+          # Keeping batches small ensures each individual push stays well
+          # below GitHub's 2 GB pack-file limit, and means earlier batches
+          # are already saved even if a later batch fails.
+          BATCH_SIZE=500
+          BATCH_NUM=0
+
+          # --------------- push helper (retries with rebase) ----------------
+          push_with_retry() {
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push \
+                && echo "Push succeeded on attempt $i" && return 0 || {
+                  echo "Push attempt $i failed, retrying in 15s..."
+                  sleep 15
+                }
+            done
+            echo "⚠️  All push attempts failed for this batch!"
+            return 1
+          }
+
+          # --------------- 1. Metadata files (always small) -----------------
+          git add ./scrape-report.json ./sitemap.xml 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "🕷️ Scrape $TIMESTAMP – metadata ($FILE_COUNT files scraped)"
+            push_with_retry
+          fi
+
+          # --------------- 2. Scraped content (batched) ---------------------
+          # Collect every new or modified file under the scrap directories.
+          # .tar.gz archives are excluded via .gitignore (they can exceed the
+          # 2 GB GitHub LFS per-object limit).
+          mapfile -d '' ALL_FILES < <(
+            git ls-files --others --exclude-standard -z -- './scrap_*/' 2>/dev/null
+            git ls-files --modified              -z -- './scrap_*/' 2>/dev/null
+          )
+
+          TOTAL_FILES=${#ALL_FILES[@]}
+          echo "Scraped files to commit: $TOTAL_FILES"
+
+          for (( i = 0; i < TOTAL_FILES; i += BATCH_SIZE )); do
+            CHUNK=("${ALL_FILES[@]:$i:$BATCH_SIZE}")
+            git add "${CHUNK[@]}"
+
+            if git diff --cached --quiet; then
+              continue
+            fi
+
+            BATCH_NUM=$(( BATCH_NUM + 1 ))
+            BATCH_END=$(( i + ${#CHUNK[@]} ))
+            git commit -m "🕷️ Scrape $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)"
+            push_with_retry || echo "⚠️  Batch $BATCH_NUM push failed; continuing with next batch"
           done
-          git log --oneline -1 || true
+
+          echo "Finished: $BATCH_NUM batch(es) pushed, $FILE_COUNT total files."
+          git log --oneline -3 || true
