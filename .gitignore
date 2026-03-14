@@ -1,3 +1,5 @@
 __pycache__/
 # Legacy mirror directory (superseded by per-run scrap_* directories)
 mirror/
+# Scraped archives exceed GitHub's 2 GB LFS per-object limit – never commit
+scrap_*.tar.gz
