@@ -57,7 +57,7 @@ def _build_allowed_domains(targets):
     return domains
 
 ALLOWED_DOMAINS  = _build_allowed_domains(TARGETS)
-THREADS          = 32                  # ↑ was 6  – I/O-bound benefits from many threads
+THREADS          = 48                  # ↑ was 6  – I/O-bound benefits from many threads
 TIMEOUT          = 8                   # ↓ was 15 – connect timeout only; fail fast on dead hosts
 DELAY            = 0                   # ↓ was 0.3 – no artificial pause
 DOWNLOAD_TIMEOUT = (8, 600)            # (connect, read) – connect faster; keep long read for large files
@@ -138,12 +138,18 @@ def phase1_crawl():
 
     stats = {"pages": 0, "assets": 0, "broken": 0, "xml": 0, "current": "–"}
 
+    # Use q.join() + stop event so workers never exit due to a transient empty
+    # queue while other workers are still processing (and about to enqueue more
+    # URLs).  All threads stay busy right until all reachable URLs are done.
+    _stop = threading.Event()
+    _done = threading.Event()
+
     def crawl_worker():
-        while True:
+        while not _stop.is_set():
             try:
-                url = q.get(timeout=2)
+                url = q.get(timeout=1)
             except queue.Empty:
-                break
+                continue
 
             with lock:
                 if url in visited:
@@ -278,12 +284,20 @@ def phase1_crawl():
 
             q.task_done()
 
+    def _queue_watcher():
+        q.join()        # blocks until every task_done() has been called
+        _stop.set()
+        _done.set()
+
+    watcher = threading.Thread(target=_queue_watcher, daemon=True)
+    watcher.start()
+
     with Live(console=console, refresh_per_second=4) as live:
         threads = [threading.Thread(target=crawl_worker, daemon=True) for _ in range(THREADS)]
         for t in threads:
             t.start()
 
-        while any(t.is_alive() for t in threads):
+        while not _done.is_set():
             elapsed_secs = max(1, (datetime.now() - START_TIME).total_seconds())
 
             with lock:

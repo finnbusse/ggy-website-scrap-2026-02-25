@@ -1,5 +1,5 @@
-# .github/workflows/fast_test.yml
-name: ⚡ Fast Scrape School Website
+# .github/workflows/scrape_v4.yml
+name: 🤖 Scrape v4 (Gemini)
 on:
   workflow_dispatch:
 
@@ -28,12 +28,10 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # lxml is required for both HTML parsing (lxml) and XML/sitemap
-          # parsing (lxml-xml parser used by BeautifulSoup for XML content)
-          pip install rich requests beautifulsoup4 lxml
+          pip install rich requests beautifulsoup4 lxml urllib3
 
-      - name: ⚡ Run fast scraper
-        run: python -u fast_scrape.py
+      - name: 🤖 Run Scraper v4
+        run: python -u scrape_v4.py
 
       - name: 💾 Commit files and archive to repo
         run: |
@@ -65,7 +63,7 @@ jobs:
           # --------------- 1. Metadata files (always small) -----------------
           git add ./scrape-report.json ./sitemap.xml 2>/dev/null || true
           if ! git diff --cached --quiet; then
-            git commit -m "⚡ Fast Scrape $TIMESTAMP – metadata ($FILE_COUNT files scraped)"
+            git commit -m "🤖 Scrape v4 $TIMESTAMP – metadata ($FILE_COUNT files scraped)"
             push_with_retry
           fi
 
@@ -73,6 +71,8 @@ jobs:
           # Collect every new or modified file under the scrap directories.
           # .tar.gz archives are excluded via .gitignore (they can exceed the
           # 2 GB GitHub LFS per-object limit).
+          # NOTE: do NOT add a trailing slash to the pathspec – git ls-files
+          # returns zero results when the pattern ends with '/'.
           mapfile -d '' ALL_FILES < <(
             git ls-files --others --exclude-standard -z -- './scrap_*' 2>/dev/null
             git ls-files --modified              -z -- './scrap_*' 2>/dev/null
@@ -91,7 +91,7 @@ jobs:
 
             BATCH_NUM=$(( BATCH_NUM + 1 ))
             BATCH_END=$(( i + ${#CHUNK[@]} ))
-            git commit -m "⚡ Fast Scrape $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)"
+            git commit -m "🤖 Scrape v4 $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)"
             push_with_retry || echo "⚠️  Batch $BATCH_NUM push failed; continuing with next batch"
           done
 
