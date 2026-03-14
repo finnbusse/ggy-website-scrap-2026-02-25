@@ -28,7 +28,7 @@ OUT_DIR          = "./mirror"
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
-MAX_FILE_MB      = 95   # GitHub's hard limit is 100 MB; stay 5 MB below for safety
+DOWNLOAD_TIMEOUT = (15, 600)  # (connect, read) – large media files can take minutes
 SKIP_EXTENSIONS  = set()
 
 # CMSimple CMS – extra seed paths to probe on every target host.
@@ -279,22 +279,16 @@ def phase2_download(urls):
                     url_queue.task_done()
                     continue
 
-                # HEAD zuerst: Größe prüfen
-                head = requests.head(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0"}, allow_redirects=True)
-                size_bytes = int(head.headers.get("content-length", 0))
-                if size_bytes > MAX_FILE_MB * 1024 * 1024:
-                    with lock:
-                        results["skip"] += 1
-                    console.print(f"[dim]⏭ Skipping large file ({size_bytes//1024//1024}MB): {url}[/dim]")
-                    url_queue.task_done()
-                    continue
-
-                r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0"})
+                # Stream download so large files (100 MB+) don't time out.
+                # Always write in binary mode with iter_content so memory usage
+                # stays constant regardless of file size, and so the read
+                # timeout is enforced between chunks (stalled-server protection).
+                r = requests.get(url, timeout=DOWNLOAD_TIMEOUT, stream=True,
+                                 headers={"User-Agent": "Mozilla/5.0"})
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
-                mode = "w" if "text" in r.headers.get("content-type", "") else "wb"
-                content = r.text if mode == "w" else r.content
-                with open(dest, mode, encoding="utf-8" if mode == "w" else None) as f:
-                    f.write(content)
+                with open(dest, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024 * 1024):
+                        f.write(chunk)
                 with lock:
                     results["ok"] += 1
 
