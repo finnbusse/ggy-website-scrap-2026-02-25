@@ -74,8 +74,8 @@ jobs:
           # .tar.gz archives are excluded via .gitignore (they can exceed the
           # 2 GB GitHub LFS per-object limit).
           mapfile -d '' ALL_FILES < <(
-            git ls-files --others --exclude-standard -z -- './scrap_*/' 2>/dev/null
-            git ls-files --modified              -z -- './scrap_*/' 2>/dev/null
+            git ls-files --others --exclude-standard -z -- './scrap_*' 2>/dev/null
+            git ls-files --modified              -z -- './scrap_*' 2>/dev/null
           )
 
           TOTAL_FILES=${#ALL_FILES[@]}
