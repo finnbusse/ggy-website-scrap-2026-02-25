@@ -1,5 +1,5 @@
 # scrape.py
-import os, json, time, queue, threading, re, warnings
+import os, json, time, queue, threading, re, warnings, tarfile, shutil
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
@@ -18,11 +18,36 @@ from rich import box
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 # ─────────────────────────────────────────
-TARGETS          = [
+# A realistic Firefox UA so servers don't block or serve degraded content.
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) "
+    "Gecko/20100101 Firefox/124.0"
+)
+
+TARGETS = [
     "http://grabbe-gymnasium.de",
+    "http://www.grabbe-gymnasium.de",
     "http://grabbe-gymnasium.info",
+    "http://www.grabbe-gymnasium.info",
+    "https://www.grabbe-gymnasium.info",
 ]
-ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
+
+# Build the allowed-domain set: include both bare and www. variants of every
+# target host so that links like https://www.grabbe-gymnasium.info/... are
+# followed even when the target was seeded as grabbe-gymnasium.info.
+def _build_allowed_domains(targets):
+    domains = set()
+    for t in targets:
+        netloc = urlparse(t).netloc
+        domains.add(netloc)
+        # Ensure both www. and bare version are always accepted
+        if netloc.startswith("www."):
+            domains.add(netloc[4:])
+        else:
+            domains.add("www." + netloc)
+    return domains
+
+ALLOWED_DOMAINS  = _build_allowed_domains(TARGETS)
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
@@ -97,7 +122,13 @@ def phase1_crawl():
                 visited.add(url)
 
             try:
-                r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0 (compatible; SchoolScraper/1.0)"})
+                r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT},
+                                 allow_redirects=True)
+                # Use the final URL after redirects as the base for resolving
+                # relative links – this is crucial when a bare domain redirects
+                # to its www. counterpart (e.g. grabbe-gymnasium.info →
+                # www.grabbe-gymnasium.info).
+                effective_url = r.url
                 ct = r.headers.get("content-type", "").lower()
                 ext = urlparse(url).path.split(".")[-1].lower() if "." in urlparse(url).path else "html"
 
@@ -109,8 +140,33 @@ def phase1_crawl():
                 is_xml = any(x in ct for x in ("text/xml", "application/xml",
                                                 "application/rss+xml", "application/atom+xml",
                                                 "application/sitemap+xml"))
+                is_css = "text/css" in ct
 
-                if "text/html" in ct or is_xml:
+                def _enqueue(raw):
+                    """Resolve *raw* against effective_url and enqueue if internal."""
+                    if not raw:
+                        return
+                    full = urljoin(effective_url, raw.strip()).split("#")[0]
+                    if not full:
+                        return
+                    if urlparse(full).netloc in ALLOWED_DOMAINS:
+                        with lock:
+                            if full not in visited:
+                                q.put(full)
+
+                def _enqueue_css_urls(css_text):
+                    """Extract all url(...) references from a CSS string."""
+                    for m in re.finditer(r'url\(\s*["\']?([^)"\']+?)["\']?\s*\)', css_text):
+                        _enqueue(m.group(1))
+
+                if is_css:
+                    # CSS files can reference images, fonts and other sub-resources
+                    # via url() that would otherwise be missed.
+                    with lock:
+                        stats["assets"] += 1
+                    _enqueue_css_urls(r.text)
+
+                elif "text/html" in ct or is_xml:
                     parser = "xml" if is_xml else "lxml"
                     with lock:
                         if is_xml:
@@ -128,17 +184,62 @@ def phase1_crawl():
                                     if full not in visited:
                                         q.put(full)
                     else:
-                        # HTML page – follow all link-bearing tags including
-                        # HTML5 media and CMSimple's data-src lazy-load pattern
-                        for tag in soup.find_all(["a", "link", "script", "img",
-                                                  "source", "video", "audio", "iframe"]):
-                            href = tag.get("href") or tag.get("src") or tag.get("data-src") or ""
-                            full = urljoin(url, href).split("#")[0]
-                            if urlparse(full).netloc not in ALLOWED_DOMAINS:
-                                continue
-                            with lock:
-                                if full not in visited:
-                                    q.put(full)
+                        # ── Tag / attribute scan ─────────────────────────────
+                        # Each entry is (list-of-tag-names, list-of-attributes).
+                        TAG_ATTRS = [
+                            (["a", "area", "link"],
+                             ["href"]),
+                            (["script", "img", "audio", "video", "source",
+                              "track", "embed", "iframe", "frame", "input",
+                              "button"],
+                             ["src", "data-src", "data-href"]),
+                            (["video"],          ["poster"]),
+                            (["object"],         ["data"]),
+                            (["form"],           ["action"]),
+                            (["blockquote", "ins", "del", "q"], ["cite"]),
+                        ]
+                        for tags, attrs in TAG_ATTRS:
+                            for tag in soup.find_all(tags):
+                                for attr in attrs:
+                                    _enqueue(tag.get(attr))
+                                # srcset="img.png 1x, img@2x.png 2x"
+                                srcset = tag.get("srcset", "")
+                                if srcset:
+                                    for part in srcset.split(","):
+                                        _enqueue(part.strip().split()[0])
+
+                        # ── <style> blocks ───────────────────────────────────
+                        for style_tag in soup.find_all("style"):
+                            _enqueue_css_urls(style_tag.get_text())
+
+                        # ── inline style="" attributes ───────────────────────
+                        for tag in soup.find_all(style=True):
+                            _enqueue_css_urls(tag["style"])
+
+                        # ── <meta http-equiv="refresh"> ──────────────────────
+                        for meta in soup.find_all(
+                                "meta",
+                                attrs={"http-equiv": re.compile(r"^refresh$", re.I)}):
+                            content = meta.get("content", "")
+                            m = re.search(r'url\s*=\s*["\']?([^\s;"\']+)', content, re.I)
+                            if m:
+                                _enqueue(m.group(1))
+
+                        # ── URLs embedded in <script> text ───────────────────
+                        # Catches path strings like '/grabbenachrichten/gg_news05.html'
+                        # and full internal URLs written directly in JS.
+                        for script in soup.find_all("script"):
+                            js = script.get_text()
+                            # Absolute internal URLs
+                            for m in re.finditer(
+                                    r'["\']((https?://)?' + r'|'.join(
+                                        re.escape(d) for d in ALLOWED_DOMAINS
+                                    ) + r'[^"\']+)["\']', js):
+                                _enqueue(m.group(1))
+                            # Quoted relative paths that look like pages/assets
+                            for m in re.finditer(
+                                    r'["\'](/[^"\'?\s]{2,}(?:\?[^"\']*)?)["\']', js):
+                                _enqueue(m.group(1))
                 else:
                     with lock:
                         stats["assets"] += 1
@@ -285,7 +386,7 @@ def phase2_download(urls):
                 # stays constant regardless of file size, and so the read
                 # timeout is enforced between chunks (stalled-server protection).
                 r = requests.get(url, timeout=DOWNLOAD_TIMEOUT, stream=True,
-                                 headers={"User-Agent": "Mozilla/5.0"})
+                                 headers={"User-Agent": USER_AGENT})
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 with open(dest, "wb") as f:
                     for chunk in r.iter_content(chunk_size=1024 * 1024):
@@ -349,6 +450,31 @@ def generate_sitemap(urls, scrap_dir):
     console.print(f"[dim]Sitemap saved to {sitemap_path} ({len(urls)} URLs)[/dim]")
 
 # ══════════════════════════════════════════════════════════
+#  ARCHIVE
+# ══════════════════════════════════════════════════════════
+
+def archive_scrap_dir(scrap_dir):
+    """Pack the entire scrap directory into a .tar.gz archive next to it.
+
+    The loose files in the scrap directory are also committed to git so that
+    individual files are browsable on GitHub.  The archive provides a
+    convenient single-file download of the entire mirror.  The .tar.gz
+    extension is tracked via Git LFS in .gitattributes so large archives are
+    handled transparently.
+    """
+    archive_path = scrap_dir.rstrip("/").rstrip(os.sep) + ".tar.gz"
+    console.print(f"[dim]Archiving {scrap_dir} → {archive_path} …[/dim]")
+    with tarfile.open(archive_path, "w:gz") as tar:
+        tar.add(scrap_dir, arcname=os.path.basename(scrap_dir))
+    size_mb = os.path.getsize(archive_path) / (1024 * 1024)
+    console.print(f"[dim]Archive created: {archive_path} ({size_mb:.1f} MB)[/dim]")
+
+    # Keep the raw directory – it is committed alongside the archive so that
+    # every scraped file is individually browsable in the GitHub repository.
+
+    return archive_path
+
+# ══════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════
 
@@ -360,6 +486,8 @@ if __name__ == "__main__":
     # Generate sitemap inside the scrap dir immediately after discovery
     os.makedirs(SCRAP_DIR, exist_ok=True)
     generate_sitemap(all_urls, SCRAP_DIR)
+    # Also write a copy at the repo root for easy access without extracting the archive
+    generate_sitemap(all_urls, ".")
 
     console.print(Panel(
         f"[bold]Found [cyan]{len(all_urls)}[/cyan] URLs total.[/bold]\n"
@@ -388,6 +516,7 @@ if __name__ == "__main__":
         "timestamp": START_TIME.isoformat(),
         "scrap_dir": SCRAP_DIR,
         "targets": TARGETS,
+        "allowed_domains": sorted(ALLOWED_DOMAINS),
         "total_urls": len(all_urls),
         "downloaded": dl["ok"],
         "skipped": dl["skip"],
@@ -403,4 +532,10 @@ if __name__ == "__main__":
         json.dump(report, f, indent=2)
 
     console.print(f"\n[dim]Report saved to {report_path} and scrape-report.json[/dim]")
-    console.print(f"[bold green]All done! Mirror in {SCRAP_DIR}/[/bold green]\n")
+
+    # Archive the raw scrap directory into a single .tar.gz file.
+    # This keeps the git repository tidy: GitHub's directory view truncates
+    # at 1 000 files, so committing 9 000+ loose files is problematic.
+    archive_path = archive_scrap_dir(SCRAP_DIR)
+
+    console.print(f"[bold green]All done! Archive: {archive_path}[/bold green]\n")

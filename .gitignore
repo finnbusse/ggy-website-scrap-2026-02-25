@@ -1,1 +1,3 @@
 __pycache__/
+# Legacy mirror directory (superseded by per-run scrap_* directories)
+mirror/
