@@ -1,211 +1,215 @@
 {
-  "timestamp": "2026-02-25T15:41:15.297945",
-  "target": "https://grabbe-gymnasium.de",
-  "total_urls": 1145,
-  "downloaded": 1139,
-  "skipped": 6,
+  "timestamp": "2026-03-14T18:29:09.077664",
+  "targets": [
+    "http://grabbe-gymnasium.de",
+    "http://grabbe-gymnasium.info",
+    "https://grabbe-gymnasium.info"
+  ],
+  "total_urls": 9002,
+  "downloaded": 7731,
+  "skipped": 1271,
   "errors": 0,
   "broken_links": [
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/...Elterninfobriefe/"
+      "http://grabbe-gymnasium.de/sitemap_index.xml"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Anmeldung_Klasse_5"
+      "http://grabbe-gymnasium.de/feed.php"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Archiv"
+      "http://grabbe-gymnasium.de/sitemap.xml"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Datenschutz-Infos"
+      "http://grabbe-gymnasium.info/sitemap.xml"
+    ],
+    [
+      403,
+      "http://grabbe-gymnasium.de/userfiles/"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Eltern-Infobriefe"
+      "http://grabbe-gymnasium.info/sitemap_index.xml"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---HA-Betreuung"
+      "http://grabbe-gymnasium.info/feed.php"
+    ],
+    [
+      403,
+      "http://grabbe-gymnasium.info/userfiles/"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info/sitemap.xml"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info/sitemap_index.xml"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info/feed.php"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info/robots.txt"
+    ],
+    [
+      "ERR",
+      "https://grabbe-gymnasium.info/userfiles/"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Herkunftssprach-licher_Unterricht"
+      "http://grabbe-gymnasium.de/leitbild/?VERANTWORTUNG"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/---Oberstufe"
+      "http://grabbe-gymnasium.de/leitbild/?WERTSCH%C3%84TZUNG"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/2526_Betirittserklaerung_Alumniverein.pdf"
+      "http://grabbe-gymnasium.de/userfiles/downloads/...Elterninfobriefe/"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Abmeldung_RU_Formular.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Anmeldung_Klasse_5"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Anleitung_Webuntis_fuer_Eltern.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Archiv"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Anmeldung_RU_Formular.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Datenschutz-Infos"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Antrag auf Abmeldung - Sek I_14.07.25.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Eltern-Infobriefe"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/E-Mail-Knigge.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---HA-Betreuung"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Arbeitsgemeinschaften AGs_25-26-Aushang.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Herkunftssprach-licher_Unterricht"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Einwilligung_Daten_12_2024.pdf"
+      "http://grabbe-gymnasium.de/userfiles/---Oberstufe"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Elternsprechtag_1_25_26_Raeume_und_Sprechzeiten.pdf"
+      "http://grabbe-gymnasium.de/userfiles/2526_Betirittserklaerung_Alumniverein.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Fahrtkosten-Antrag.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Abmeldung_RU_Formular.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Grabbe_Materialliste_2025_26.pages.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Anleitung_Webuntis_fuer_Eltern.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Hausordnung_2024.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Anmeldung_RU_Formular.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Krankmeldung_Klasse 5-13.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Antrag auf Abmeldung - Sek I_14.07.25.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Lehrer_Email_Faecher_Liste_27.01.2025.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Arbeitsgemeinschaften AGs_25-26-Aushang.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Mensa-Anmeldung Abo ab 2025-11.pdf"
+      "http://grabbe-gymnasium.de/userfiles/E-Mail-Knigge.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Mensa_Preise_August_24.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Einwilligung_Daten_12_2024.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Neuaufnahme_Klasse 6-13_Formular_digital_auszufuellen.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Elternsprechtag_1_25_26_Raeume_und_Sprechzeiten.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Richtlinien Verhalten bei Braenden_2022.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Fahrtkosten-Antrag.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Schulbuecher 2025_26.jpeg"
+      "http://grabbe-gymnasium.de/userfiles/Grabbe_Materialliste_2025_26.pages.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Schulpflicht Aufklaerung.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Hausordnung_2024.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Stundenraster_Grabbe.jpg"
+      "http://grabbe-gymnasium.de/userfiles/Krankmeldung_Klasse 5-13.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/Tablet_Knigge_am_Grabbe.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Lehrer_Email_Faecher_Liste_27.01.2025.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/css/core.css"
+      "http://grabbe-gymnasium.de/userfiles/Mensa-Anmeldung Abo ab 2025-11.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/stylesheet.css"
+      "http://grabbe-gymnasium.de/userfiles/Mensa_Preise_August_24.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/scripts/smoothscroll.js"
+      "http://grabbe-gymnasium.de/userfiles/Neuaufnahme_Klasse 6-13_Formular_digital_auszufuellen.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/plugins/convert_h1split/css/stylesheet.css"
+      "http://grabbe-gymnasium.de/userfiles/Richtlinien Verhalten bei Braenden_2022.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/images/homelink.gif"
+      "http://grabbe-gymnasium.de/userfiles/Schulbuecher 2025_26.jpeg"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/images/menulink.gif"
+      "http://grabbe-gymnasium.de/userfiles/Schulpflicht Aufklaerung.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/images/scrolltotop.gif"
+      "http://grabbe-gymnasium.de/userfiles/Stundenraster_Grabbe.jpg"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/downloads/SLZ-Medien-WLAN-Benutzer-Ordnung-Antrag_v0.7_2017-09-15.pdf"
+      "http://grabbe-gymnasium.de/userfiles/Tablet_Knigge_am_Grabbe.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/2324_Benutzungsordnung_Tablets_am_Grabbe.pdf"
+      "http://grabbe-gymnasium.de/userfiles/WP II 2026 Wahlzettel G9-Kursbeschreibungen Stand 26 Feb 2026.pdf"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Brosch\u00fcre_Gymnasiale_Oberstufe.pdf"
+      "http://grabbe-gymnasium.de/cms_hp/css/core.css"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/images/file/LuPO_SV.pdf"
+      "http://grabbe-gymnasium.de/cms_hp/templates/onepage2023_01/stylesheet.css"
     ],
     [
       404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/\u00dcbersicht%20Klausurl\u00e4ngen_ab HJ2_2025_26.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Klausurplan%20EF_2_SJ 2025_26.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Klausurplan%20Q1_2_SJ 2025_26.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Klausurregelungen_Oberstufe.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Entschuldigungsformular_2025_neu.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Beurlaubungsantrag_neu_2025.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Infoblatt%20Beurlaubung_2025.pdf"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/images/Facharbeit.jpg"
-    ],
-    [
-      404,
-      "https://grabbe-gymnasium.de/userfiles/downloads/Termine%20FA Abi 27.pdf"
+      "http://grabbe-gymnasium.de/cms_hp/plugins/convert_h1split/css/stylesheet.css"
     ]
   ],
-  "duration_seconds": 616
+  "duration_seconds": 1764
 }
