@@ -1,5 +1,5 @@
 # scrape.py
-import os, json, time, queue, threading
+import os, json, time, queue, threading, re
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
@@ -15,13 +15,18 @@ from rich.rule import Rule
 from rich import box
 
 # ─────────────────────────────────────────
-TARGET           = "https://grabbe-gymnasium.de"
+TARGETS          = [
+    "http://grabbe-gymnasium.de",
+    "http://grabbe-gymnasium.info",
+    "https://grabbe-gymnasium.info",
+]
+ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
 OUT_DIR          = "./mirror"
 THREADS          = 6
 TIMEOUT          = 15
 DELAY            = 0.3
-MAX_FILE_MB      = 50
-SKIP_EXTENSIONS  = {".mp4", ".avi", ".mov", ".wmv", ".mkv", ".zip", ".tar", ".gz", ".iso"}
+MAX_FILE_MB      = 5000
+SKIP_EXTENSIONS  = set()
 # ─────────────────────────────────────────
 
 console = Console(highlight=False)
@@ -30,7 +35,7 @@ START_TIME = datetime.now()
 def banner():
     console.print(Panel.fit(
         f"[bold cyan]🕷️  School Website Scraper[/bold cyan]\n"
-        f"[dim]Target:[/dim] [yellow]{TARGET}[/yellow]\n"
+        f"[dim]Targets:[/dim] [yellow]{', '.join(TARGETS)}[/yellow]\n"
         f"[dim]Started:[/dim] [white]{START_TIME.strftime('%Y-%m-%d %H:%M:%S')}[/white]",
         border_style="cyan", padding=(1, 4)
     ))
@@ -49,7 +54,8 @@ def phase1_crawl():
     by_type  = defaultdict(int)
     lock     = threading.Lock()
     q        = queue.Queue()
-    q.put(TARGET)
+    for t in TARGETS:
+        q.put(t)
 
     stats = {"pages": 0, "assets": 0, "broken": 0, "current": "–"}
 
@@ -72,7 +78,7 @@ def phase1_crawl():
                 ext = urlparse(url).path.split(".")[-1].lower() if "." in urlparse(url).path else "html"
 
                 with lock:
-                    stats["current"] = url.replace(TARGET, "")[:70] or "/"
+                    stats["current"] = url[:70]
                     by_type[ext] += 1
 
                 if "text/html" in ct:
@@ -81,8 +87,8 @@ def phase1_crawl():
                     soup = BeautifulSoup(r.text, "lxml")
                     for tag in soup.find_all(["a", "link", "script", "img"]):
                         href = tag.get("href") or tag.get("src") or ""
-                        full = urljoin(url, href).split("#")[0].split("?")[0]
-                        if not full.startswith(TARGET):
+                        full = urljoin(url, href).split("#")[0]
+                        if urlparse(full).netloc not in ALLOWED_DOMAINS:
                             continue
                         with lock:
                             if full not in visited:
@@ -164,7 +170,15 @@ def phase1_crawl():
 def url_to_path(url):
     parsed = urlparse(url)
     path = parsed.path.lstrip("/") or "index.html"
-    if not os.path.splitext(path)[1]:
+    if parsed.query:
+        # Sanitize query string: replace all filesystem-unsafe characters with '_'
+        safe_query = re.sub(r'[/\\:*?"<>|]', '_', parsed.query)
+        if not os.path.splitext(path)[1]:
+            # No file extension — treat as HTML page with query params
+            path = (path.rstrip("/") or "index") + "_Q_" + safe_query + ".html"
+        else:
+            path = path + "_Q_" + safe_query
+    elif not os.path.splitext(path)[1]:
         path = path.rstrip("/") + "/index.html"
     return os.path.join(OUT_DIR, parsed.netloc, path)
 
@@ -186,7 +200,7 @@ def phase2_download(urls):
 
             dest = url_to_path(url)
             with lock:
-                results["current"] = url.replace(TARGET, "")[:65] or "/"
+                results["current"] = url[:65]
 
             if os.path.exists(dest):
                 with lock:
@@ -210,7 +224,7 @@ def phase2_download(urls):
                 if size_bytes > MAX_FILE_MB * 1024 * 1024:
                     with lock:
                         results["skip"] += 1
-                    console.print(f"[dim]⏭ Skipping large file ({size_bytes//1024//1024}MB): {url.replace(TARGET, '')}[/dim]")
+                    console.print(f"[dim]⏭ Skipping large file ({size_bytes//1024//1024}MB): {url}[/dim]")
                     url_queue.task_done()
                     continue
 
@@ -295,7 +309,7 @@ if __name__ == "__main__":
 
     report = {
         "timestamp": START_TIME.isoformat(),
-        "target": TARGET,
+        "targets": TARGETS,
         "total_urls": len(all_urls),
         "downloaded": dl["ok"],
         "skipped": dl["skip"],
