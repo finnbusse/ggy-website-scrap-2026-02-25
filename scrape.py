@@ -140,8 +140,33 @@ def phase1_crawl():
                 is_xml = any(x in ct for x in ("text/xml", "application/xml",
                                                 "application/rss+xml", "application/atom+xml",
                                                 "application/sitemap+xml"))
+                is_css = "text/css" in ct
 
-                if "text/html" in ct or is_xml:
+                def _enqueue(raw):
+                    """Resolve *raw* against effective_url and enqueue if internal."""
+                    if not raw:
+                        return
+                    full = urljoin(effective_url, raw.strip()).split("#")[0]
+                    if not full:
+                        return
+                    if urlparse(full).netloc in ALLOWED_DOMAINS:
+                        with lock:
+                            if full not in visited:
+                                q.put(full)
+
+                def _enqueue_css_urls(css_text):
+                    """Extract all url(...) references from a CSS string."""
+                    for m in re.finditer(r'url\(\s*["\']?([^)"\']+?)["\']?\s*\)', css_text):
+                        _enqueue(m.group(1))
+
+                if is_css:
+                    # CSS files can reference images, fonts and other sub-resources
+                    # via url() that would otherwise be missed.
+                    with lock:
+                        stats["assets"] += 1
+                    _enqueue_css_urls(r.text)
+
+                elif "text/html" in ct or is_xml:
                     parser = "xml" if is_xml else "lxml"
                     with lock:
                         if is_xml:
@@ -159,23 +184,62 @@ def phase1_crawl():
                                     if full not in visited:
                                         q.put(full)
                     else:
-                        # HTML page – follow all link-bearing tags including
-                        # HTML5 media, image maps (<area>) and CMSimple's
-                        # data-src lazy-load pattern.
-                        for tag in soup.find_all(["a", "link", "script", "img",
-                                                  "source", "video", "audio",
-                                                  "iframe", "area"]):
-                            href = (tag.get("href") or tag.get("src") or
-                                    tag.get("data-src") or "")
-                            # Resolve relative links against the *effective* URL
-                            # (after HTTP redirects) so that pages served from
-                            # www. subdomains link-resolve correctly.
-                            full = urljoin(effective_url, href).split("#")[0]
-                            if urlparse(full).netloc not in ALLOWED_DOMAINS:
-                                continue
-                            with lock:
-                                if full not in visited:
-                                    q.put(full)
+                        # ── Tag / attribute scan ─────────────────────────────
+                        # Each entry is (list-of-tag-names, list-of-attributes).
+                        TAG_ATTRS = [
+                            (["a", "area", "link"],
+                             ["href"]),
+                            (["script", "img", "audio", "video", "source",
+                              "track", "embed", "iframe", "frame", "input",
+                              "button"],
+                             ["src", "data-src", "data-href"]),
+                            (["video"],          ["poster"]),
+                            (["object"],         ["data"]),
+                            (["form"],           ["action"]),
+                            (["blockquote", "ins", "del", "q"], ["cite"]),
+                        ]
+                        for tags, attrs in TAG_ATTRS:
+                            for tag in soup.find_all(tags):
+                                for attr in attrs:
+                                    _enqueue(tag.get(attr))
+                                # srcset="img.png 1x, img@2x.png 2x"
+                                srcset = tag.get("srcset", "")
+                                if srcset:
+                                    for part in srcset.split(","):
+                                        _enqueue(part.strip().split()[0])
+
+                        # ── <style> blocks ───────────────────────────────────
+                        for style_tag in soup.find_all("style"):
+                            _enqueue_css_urls(style_tag.get_text())
+
+                        # ── inline style="" attributes ───────────────────────
+                        for tag in soup.find_all(style=True):
+                            _enqueue_css_urls(tag["style"])
+
+                        # ── <meta http-equiv="refresh"> ──────────────────────
+                        for meta in soup.find_all(
+                                "meta",
+                                attrs={"http-equiv": re.compile(r"^refresh$", re.I)}):
+                            content = meta.get("content", "")
+                            m = re.search(r'url\s*=\s*["\']?([^\s;"\']+)', content, re.I)
+                            if m:
+                                _enqueue(m.group(1))
+
+                        # ── URLs embedded in <script> text ───────────────────
+                        # Catches path strings like '/grabbenachrichten/gg_news05.html'
+                        # and full internal URLs written directly in JS.
+                        for script in soup.find_all("script"):
+                            js = script.get_text()
+                            # Absolute internal URLs
+                            for m in re.finditer(
+                                    r'["\']((https?://)?' + r'|'.join(
+                                        re.escape(d) for d in ALLOWED_DOMAINS
+                                    ) + r'[^"\']+)["\']', js):
+                                _enqueue(m.group(1))
+                            # Quoted relative paths that look like pages/assets
+                            for m in re.finditer(
+                                    r'["\'](/[^"\'?\s]{2,}(?:\?[^"\']*)?)["\']', js):
+                                _enqueue(m.group(1))
                 else:
                     with lock:
                         stats["assets"] += 1
