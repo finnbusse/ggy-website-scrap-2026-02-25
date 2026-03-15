@@ -104,6 +104,7 @@ CMSIMPLE_EXTRA_PATHS = [
     "images/",
     "files/",
     "upload/",
+    "spr/",
     "uploads/",
     "assets/",
     "js/",
