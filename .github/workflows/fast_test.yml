@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   scrape:
@@ -35,7 +36,9 @@ jobs:
       - name: ⚡ Run fast scraper
         run: python -u fast_scrape.py
 
-      - name: 💾 Commit files and archive to repo
+      - name: 💾 Commit files and open Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e  # Never abort the job on a single git error
 
@@ -43,35 +46,22 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           TIMESTAMP=$(date +'%Y-%m-%d %H:%M')
+          TIMESTAMP_SAFE=$(date +'%Y%m%d-%H%M%S')
           FILE_COUNT=$(find ./scrap_*/ -type f 2>/dev/null | wc -l)
+          BRANCH="scrape/fast-${TIMESTAMP_SAFE}"
           BATCH_SIZE=500
           BATCH_NUM=0
 
-          # --------------- push helper (retries with rebase + force fallback) ----------------
-          push_with_retry() {
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              git pull --rebase origin main 2>/dev/null || true
-              git push && echo "Push succeeded on attempt $i" && return 0 || {
-                echo "Push attempt $i failed, retrying in 10s..."
-                sleep 10
-              }
-            done
-            # Last resort: force push to guarantee data is saved
-            echo "⚠️  Normal push failed 10 times – using force push as last resort"
-            git push --force-with-lease || git push --force || {
-              echo "⚠️  Even force push failed for this batch"
-              return 1
-            }
-          }
+          # --------------- 1. Create a unique branch for this scrape run -----
+          git checkout -b "$BRANCH"
 
-          # --------------- 1. Metadata files (always small) -----------------
+          # --------------- 2. Metadata files (always small) -----------------
           git add ./scrape-report.json ./sitemap.xml 2>/dev/null || true
           if ! git diff --cached --quiet 2>/dev/null; then
             git commit -m "⚡ Fast Scrape $TIMESTAMP – metadata ($FILE_COUNT files scraped)" || true
-            push_with_retry || true
           fi
 
-          # --------------- 2. Scraped content (batched) ---------------------
+          # --------------- 3. Scraped content (batched commits) -------------
           mapfile -d '' ALL_FILES < <(
             git ls-files --others --exclude-standard -z -- './scrap_*' 2>/dev/null
             git ls-files --modified              -z -- './scrap_*' 2>/dev/null
@@ -91,10 +81,29 @@ jobs:
             BATCH_NUM=$(( BATCH_NUM + 1 ))
             BATCH_END=$(( i + ${#CHUNK[@]} ))
             git commit -m "⚡ Fast Scrape $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)" || true
-            push_with_retry || echo "⚠️  Batch $BATCH_NUM push failed; continuing with next batch"
           done
 
-          echo "Finished: $BATCH_NUM batch(es) pushed, $FILE_COUNT total files."
+          # --------------- 4. Push branch & open PR -------------------------
+          COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo 0)
+          if [ "$COMMITS_AHEAD" -gt 0 ]; then
+            git push origin "$BRANCH" || {
+              echo "⚠️  Push failed"; exit 0
+            }
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "⚡ Fast Scrape $TIMESTAMP ($FILE_COUNT files)" \
+              --body "Automated scrape run (**fast scraper**) – $TIMESTAMP
+
+          **Files scraped:** $FILE_COUNT
+          **Batches:** $BATCH_NUM
+
+          > Merge this PR to add the scraped data to main." \
+            || echo "⚠️  PR creation failed (branch was pushed – you can create the PR manually)"
+          else
+            echo "Nothing to commit – no PR needed."
+          fi
+
+          echo "Finished: $BATCH_NUM batch(es) committed, $FILE_COUNT total files."
           git log --oneline -3 || true
-          # Always exit successfully – partial data is better than no data
           exit 0
