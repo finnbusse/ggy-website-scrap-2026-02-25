@@ -54,6 +54,10 @@ DELAY            = 0.3
 DOWNLOAD_TIMEOUT = (15, 600)  # (connect, read) – large media files can take minutes
 SKIP_EXTENSIONS  = set()
 
+# Canonical domain – all domain variants are stored under this single directory
+# so that www / non-www, .de / .info all end up together.
+CANONICAL_DOMAIN = "www.grabbe-gymnasium.de"
+
 # CMSimple CMS – extra seed paths to probe on every target host.
 # CMSimple often exposes a sitemap, RSS feed and a robots.txt
 # that reveal additional content URLs.
@@ -63,7 +67,61 @@ CMSIMPLE_EXTRA_PATHS = [
     "feed.php",           # CMSimple RSS feed
     "robots.txt",
     "userfiles/",
+    "userfiles/downloads/",
+    "userfiles/images/",
     "cms_hp/",
+    "cms_hp/nachmittag/",
+    "cms_hp/kunst/",
+    "cms_hp/musik/",
+    "cms_hp/sport/",
+    "cms_hp/nawi/",
+    "cms_hp/newsarchiv/",
+    "cms_hp/newsarchiv/content/newsOverview.php",
+    # Grabbenachrichten / GG News archive (critical – must be discovered)
+    "grabbenachrichten/",
+    "grabbenachrichten/gg_news05.html",
+    "xpages/grabbenachrichten/",
+    "xpages/grabbenachrichten/gg_news05.html",
+    # Brute-force all GG News issues
+    *[f"grabbenachrichten/gg_news{i:02d}.html" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i}.html" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i:02d}.htm" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i}.htm" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i:02d}.html" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i}.html" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i:02d}.htm" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i}.htm" for i in range(100)],
+    # Additional portals & directories for exhaustive crawling
+    "foerderkonzept2/",
+    "oberstufe2/",
+    "leitbild/",
+    "vplan/",
+    "vertretung/",
+    "medien/",
+    "medien/kalender/",
+    "downloads/",
+    "media/",
+    "images/",
+    "files/",
+    "upload/",
+    "uploads/",
+    "assets/",
+    "js/",
+    "css/",
+    "templates/",
+    "pdf/",
+    "audio/",
+    "docs/",
+    "grabbeTV/",
+    "infos/organisation/",
+    "infos/unterricht/",
+    # CMSimple query pages
+    "?Start",
+    "?Nachmittag",
+    "?Unser_Profil",
+    "?Impressum",
+    "?sitemap=1",
+    "?Suche",
 ]
 # ─────────────────────────────────────────
 
@@ -167,6 +225,15 @@ def phase1_crawl():
                     _enqueue_css_urls(r.text)
 
                 elif "text/html" in ct or is_xml:
+                    # Skip "Object not found!" error pages returned with 200 status
+                    if not is_xml and "<title>Object not found!</title>" in r.text[:2048]:
+                        with lock:
+                            stats["broken"] += 1
+                            broken.append(("404-content", url))
+                        time.sleep(DELAY)
+                        q.task_done()
+                        continue
+
                     parser = "xml" if is_xml else "lxml"
                     with lock:
                         if is_xml:
@@ -343,7 +410,8 @@ def url_to_path(url):
             path = path + "_Q_" + safe_query
     elif not os.path.splitext(path)[1]:
         path = path.rstrip("/") + "/index.html"
-    return os.path.join(OUT_DIR, parsed.netloc, path)
+    # Consolidate all domain variants into a single canonical directory
+    return os.path.join(OUT_DIR, CANONICAL_DOMAIN, path)
 
 def phase2_download(urls):
     console.print(Rule("[bold cyan]⬇️  Phase 2 — Download[/bold cyan]", style="cyan"))
@@ -387,10 +455,37 @@ def phase2_download(urls):
                 # timeout is enforced between chunks (stalled-server protection).
                 r = requests.get(url, timeout=DOWNLOAD_TIMEOUT, stream=True,
                                  headers={"User-Agent": USER_AGENT})
+
+                # Skip error pages (404, "Object not found!", etc.)
+                if r.status_code >= 400:
+                    with lock:
+                        results["skip"] += 1
+                    url_queue.task_done()
+                    time.sleep(DELAY)
+                    continue
+
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 with open(dest, "wb") as f:
                     for chunk in r.iter_content(chunk_size=1024 * 1024):
                         f.write(chunk)
+
+                # Post-download check: remove "Object not found!" error pages
+                # that the server returns with a 200 status code.
+                ct = r.headers.get("content-type", "").lower()
+                if "text/html" in ct:
+                    try:
+                        with open(dest, "r", encoding="utf-8", errors="ignore") as f:
+                            head = f.read(2048)
+                        if "<title>Object not found!</title>" in head:
+                            os.remove(dest)
+                            with lock:
+                                results["skip"] += 1
+                            url_queue.task_done()
+                            time.sleep(DELAY)
+                            continue
+                    except Exception:
+                        pass
+
                 with lock:
                     results["ok"] += 1
 

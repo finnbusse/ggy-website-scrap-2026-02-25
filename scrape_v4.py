@@ -32,7 +32,15 @@ TARGETS = [
     "http://www.grabbe-gymnasium.info",
     "https://www.grabbe-gymnasium.info",
 ]
-ALLOWED_DOMAINS  = {urlparse(t).netloc for t in TARGETS}
+# Build the allowed-domain set: include both bare and www. variants
+_allowed = set()
+for _t in TARGETS:
+    _n = urlparse(_t).netloc
+    _allowed.add(_n)
+    _allowed.add("www." + _n if not _n.startswith("www.") else _n[4:])
+ALLOWED_DOMAINS  = _allowed
+# Canonical domain – all domain variants stored under this single directory
+CANONICAL_DOMAIN = "www.grabbe-gymnasium.de"
 THREADS          = 24
 TIMEOUT          = 15
 DELAY            = 0.05
@@ -72,6 +80,22 @@ SEED_PATHS = [
     "vplan/",
     "vertretung/",
     "cms_hp/",
+    # Grabbenachrichten / GG News archive (critical – must be discovered)
+    "grabbenachrichten/",
+    "grabbenachrichten/gg_news05.html",
+    "xpages/grabbenachrichten/",
+    "xpages/grabbenachrichten/gg_news05.html",
+    # Brute-force all GG News issues (00–99, with and without leading zero)
+    *[f"grabbenachrichten/gg_news{i:02d}.html" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i}.html" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i:02d}.htm" for i in range(100)],
+    *[f"grabbenachrichten/gg_news{i}.htm" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i:02d}.html" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i}.html" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i:02d}.htm" for i in range(100)],
+    *[f"xpages/grabbenachrichten/gg_news{i}.htm" for i in range(100)],
+    # GrabbeTV
+    "grabbeTV/",
     # Datei-Verzeichnisse
     "userfiles/",
     "userfiles/downloads/",
@@ -92,6 +116,9 @@ SEED_PATHS = [
     "js/",
     "css/",
     "templates/",
+    "pdf/",
+    "audio/",
+    "docs/",
     # CMSimple-Query-Seiten (Startseite)
     "?Start",
     "?Dein_Start_in_Klasse_05",
@@ -372,6 +399,15 @@ def phase1_crawl():
                         stats["pages"] += 1
 
                 elif is_html:
+                    # Skip "Object not found!" error pages returned with 200 status
+                    if "<title>Object not found!</title>" in r.text[:2048]:
+                        with lock:
+                            stats["broken"] += 1
+                            broken.append(("404-content", url))
+                        time.sleep(DELAY)
+                        q.task_done()
+                        continue
+
                     soup = BeautifulSoup(r.text, HTML_PARSER)
                     new_links = extract_links_from_html(soup, effective_url)
                     with lock:
@@ -510,7 +546,8 @@ def url_to_path(url: str) -> str:
             path = path + "_Q_" + safe_query
     elif not os.path.splitext(path)[1]:
         path = path.rstrip("/") + "/index.html"
-    return os.path.join(OUT_DIR, parsed.netloc, path)
+    # Consolidate all domain variants into a single canonical directory
+    return os.path.join(OUT_DIR, CANONICAL_DOMAIN, path)
 
 
 def phase2_download(urls: list[str]):
@@ -549,11 +586,37 @@ def phase2_download(urls: list[str]):
                     continue
 
                 r = sess.get(url, timeout=DOWNLOAD_TIMEOUT, stream=True)
+
+                # Skip error pages (404, "Object not found!", etc.)
+                if r.status_code >= 400:
+                    with lock:
+                        results["skip"] += 1
+                    url_queue.task_done()
+                    time.sleep(DELAY)
+                    continue
+
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 with open(dest, "wb") as f:
                     for chunk in r.iter_content(chunk_size=512 * 1024):
                         if chunk:
                             f.write(chunk)
+
+                # Post-download check: remove "Object not found!" error pages
+                ct = r.headers.get("content-type", "").lower()
+                if "text/html" in ct:
+                    try:
+                        with open(dest, "r", encoding="utf-8", errors="ignore") as f:
+                            head = f.read(2048)
+                        if "<title>Object not found!</title>" in head:
+                            os.remove(dest)
+                            with lock:
+                                results["skip"] += 1
+                            url_queue.task_done()
+                            time.sleep(DELAY)
+                            continue
+                    except Exception:
+                        pass
+
                 with lock:
                     results["ok"] += 1
 
