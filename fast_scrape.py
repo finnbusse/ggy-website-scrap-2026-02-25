@@ -106,6 +106,7 @@ CMSIMPLE_EXTRA_PATHS = [
     "medien/",
     "medien/kalender/",
     "downloads/",
+    "spr/",
     "media/",
     "images/",
     "files/",
