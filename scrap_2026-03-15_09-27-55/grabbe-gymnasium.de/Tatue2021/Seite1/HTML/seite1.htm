@@ -1,0 +1,263 @@
+<html>
+<head>
+<meta name="GENERATOR" content="MatchWare Mediator 8.0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Seite1</title>
+
+<SCRIPT LANGUAGE="JavaScript">
+function IsOldBrowser() { return true; }
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript" SRC="md8lib.js"></SCRIPT>
+
+<script>
+</script>
+
+<style type="text/css">* {cursor: url(android.png), auto !important;}</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+
+function seite1_tokunl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion07.Start();
+ clickobj=FindObject( "seite1_tokunl");
+}
+
+function seite1_tokunl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tokunl")) return;
+ insideobj=FindObject( "seite1_tokunl");
+ actions.seite1_aktion32.Start();
+}
+
+function seite1_tonawl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion08.Start();
+ clickobj=FindObject( "seite1_tonawl");
+}
+
+function seite1_tonawl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tonawl")) return;
+ insideobj=FindObject( "seite1_tonawl");
+ actions.seite1_aktion06.Start();
+}
+
+function seite1_tomusl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion11.Start();
+ clickobj=FindObject( "seite1_tomusl");
+}
+
+function seite1_tomusl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tomusl")) return;
+ insideobj=FindObject( "seite1_tomusl");
+ actions.seite1_aktion09.Start();
+}
+
+function seite1_tospol_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion16.Start();
+ clickobj=FindObject( "seite1_tospol");
+}
+
+function seite1_tospol_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tospol")) return;
+ insideobj=FindObject( "seite1_tospol");
+ actions.seite1_aktion14.Start();
+}
+
+function seite1_tobiol_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion21.Start();
+ clickobj=FindObject( "seite1_tobiol");
+}
+
+function seite1_tobiol_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tobiol")) return;
+ insideobj=FindObject( "seite1_tobiol");
+ actions.seite1_aktion20.Start();
+}
+
+function OnPageReady() {
+
+ actions.seite1_aktion01.Start();
+ actions.seite1_aktion02.Start();
+ actions.seite1_aktion04.Start();
+ actions.seite1_aktion19.Start();
+ actions.seite1_aktion03.Start();
+ actions.seite1_aktion05.Start();
+ actions.seite1_aktion17.Start();
+ actions.seite1_aktion25.Start();
+ actions.seite1_aktion27.Start();
+ actions.seite1_aktion29.Start();
+ actions.seite1_aktion35.Start();
+ initialized = true;
+}
+
+
+function Initialize() {
+   if ( IsOldBrowser()) {
+     window.location = "oldbrowser.htm";
+     return;
+   }
+   else    if ( window.parent == self) {
+     FrameIt( "seite1.htm");
+
+     return;
+   }
+   else  BrowserInit();
+x = new Array( 792,0);
+y = new Array( 320,320);
+var seite1_anipfad01 = new AnimationPath( x,y);
+
+ actions.seite1_aktion32 = new ShowAction( "seite1_tuer_kunst", 0,  effects.Normal );
+ actions.seite1_aktion07 = new HttpAction( "\"kunst.htm\"",true)
+FindObject( "seite1_tokunl").onmousedown = function(){ seite1_tokunl_MouseDown();  };
+ FindObject( "seite1_tokunl").onmousemove = function(){ seite1_tokunl_MoveIn(); };
+ actions.seite1_aktion06 = new ShowAction( "seite1_tuer_nawi", 0,  effects.Normal );
+ actions.seite1_aktion08 = new HttpAction( "\"nawi.htm\"",true)
+FindObject( "seite1_tonawl").onmousedown = function(){ seite1_tonawl_MouseDown();  };
+ FindObject( "seite1_tonawl").onmousemove = function(){ seite1_tonawl_MoveIn(); };
+ actions.seite1_aktion09 = new ShowAction( "seite1_tuer_musik", 0,  effects.Normal );
+ actions.seite1_aktion11 = new HttpAction( "\"musik.htm\"",true)
+FindObject( "seite1_tomusl").onmousedown = function(){ seite1_tomusl_MouseDown();  };
+ FindObject( "seite1_tomusl").onmousemove = function(){ seite1_tomusl_MoveIn(); };
+ actions.seite1_aktion14 = new ShowAction( "seite1_tuer_sport", 0,  effects.Normal );
+ actions.seite1_aktion16 = new HttpAction( "\"sport.htm\"",true)
+FindObject( "seite1_tospol").onmousedown = function(){ seite1_tospol_MouseDown();  };
+ FindObject( "seite1_tospol").onmousemove = function(){ seite1_tospol_MoveIn(); };
+ actions.seite1_aktion20 = new ShowAction( "seite1_tuer_bio", 0,  effects.Normal );
+ actions.seite1_aktion21 = new HttpAction( "\"bio.htm\"",true)
+FindObject( "seite1_tobiol").onmousedown = function(){ seite1_tobiol_MouseDown();  };
+ FindObject( "seite1_tobiol").onmousemove = function(){ seite1_tobiol_MoveIn(); };
+ actions.seite1_aktion01 = new AnimationAction( "seite1_aktion01", "seite1_panraum1", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion02 = new AnimationAction( "seite1_aktion02", "seite1_tuer_kunst", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion04 = new AnimationAction( "seite1_aktion04", "seite1_tuer_nawi", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion19 = new AnimationAction( "seite1_aktion19", "seite1_tuer_bio", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion03 = new AnimationAction( "seite1_aktion03", "seite1_tuer_sport", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion05 = new AnimationAction( "seite1_aktion05", "seite1_tuer_musik", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion17 = new AnimationAction( "seite1_aktion17", "seite1_tokunl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion25 = new AnimationAction( "seite1_aktion25", "seite1_tonawl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion27 = new AnimationAction( "seite1_aktion27", "seite1_tospol", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion29 = new AnimationAction( "seite1_aktion29", "seite1_tomusl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion35 = new AnimationAction( "seite1_aktion35", "seite1_tobiol", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ OnPageReady();
+}
+</SCRIPT>
+
+</head>
+
+<body onload="Initialize();"  bgcolor="#FFFFFF">
+
+<DIV id="seite1_panraum1"
+     STYLE="position:absolute; left:0px; top:0px; width:1600px; height:251px; ">
+<img src="000001.jpg"
+     width="1600"
+     height="251"
+>
+</DIV>
+
+<DIV id="seite1_tuer_kunst"
+     STYLE="position:absolute; visibility: hidden; left:148px; top:82px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_nawi"
+     STYLE="position:absolute; visibility: hidden; left:496px; top:80px; width:100px; height:108px; ">
+<img src="000003.png"
+     width="100"
+     height="108"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tuer_bio"
+     STYLE="position:absolute; visibility: hidden; left:603px; top:81px; width:100px; height:110px; ">
+<img src="000003.png"
+     width="100"
+     height="110"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tuer_sport"
+     STYLE="position:absolute; visibility: hidden; left:948px; top:84px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_musik"
+     STYLE="position:absolute; visibility: hidden; left:1352px; top:86px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tokunl"
+     STYLE="position:absolute; left:119px; top:51px; width:150px; height:165px; ">
+<img src="000007.gif"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tonawl"
+     STYLE="position:absolute; left:469px; top:56px; width:150px; height:165px; ">
+<img src="000007.gif"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tomusl"
+     STYLE="position:absolute; left:1327px; top:51px; width:150px; height:165px; ">
+<img src="000007.gif"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tospol"
+     STYLE="position:absolute; left:923px; top:49px; width:150px; height:165px; ">
+<img src="000007.gif"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tobiol"
+     STYLE="position:absolute; left:578px; top:49px; width:150px; height:165px; ">
+<img src="000007.gif"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+</body>
+</html>

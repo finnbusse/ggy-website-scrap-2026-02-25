@@ -1,0 +1,222 @@
+<html>
+<head>
+<meta name="GENERATOR" content="MatchWare Mediator 8.0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Seite1</title>
+
+<SCRIPT LANGUAGE="JavaScript">
+function IsOldBrowser() { return true; }
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript" SRC="md8lib.js"></SCRIPT>
+
+<script>
+</script>
+
+<style type="text/css">* {cursor: url(android.png), auto !important;}</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+
+function seite1_torobl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion07.Start();
+ clickobj=FindObject( "seite1_torobl");
+}
+
+function seite1_torobl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_torobl")) return;
+ insideobj=FindObject( "seite1_torobl");
+ actions.seite1_aktion32.Start();
+}
+
+function seite1_tovidl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion10.Start();
+ clickobj=FindObject( "seite1_tovidl");
+}
+
+function seite1_tovidl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tovidl")) return;
+ insideobj=FindObject( "seite1_tovidl");
+ actions.seite1_aktion06.Start();
+}
+
+function seite1_tocoml_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion12.Start();
+ clickobj=FindObject( "seite1_tocoml");
+}
+
+function seite1_tocoml_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tocoml")) return;
+ insideobj=FindObject( "seite1_tocoml");
+ actions.seite1_aktion11.Start();
+}
+
+function seite1_tohistl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion15.Start();
+ clickobj=FindObject( "seite1_tohistl");
+}
+
+function seite1_tohistl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tohistl")) return;
+ insideobj=FindObject( "seite1_tohistl");
+ actions.seite1_aktion13.Start();
+}
+
+function OnPageReady() {
+
+ actions.seite1_aktion01.Start();
+ actions.seite1_aktion02.Start();
+ actions.seite1_aktion04.Start();
+ actions.seite1_aktion03.Start();
+ actions.seite1_aktion05.Start();
+ actions.seite1_aktion17.Start();
+ actions.seite1_aktion25.Start();
+ actions.seite1_aktion27.Start();
+ actions.seite1_aktion29.Start();
+ initialized = true;
+}
+
+
+function Initialize() {
+   if ( IsOldBrowser()) {
+     window.location = "oldbrowser.htm";
+     return;
+   }
+   else    if ( window.parent == self) {
+     FrameIt( "seite1.htm");
+
+     return;
+   }
+   else  BrowserInit();
+x = new Array( 792,0);
+y = new Array( 320,320);
+var seite1_anipfad01 = new AnimationPath( x,y);
+
+ actions.seite1_aktion32 = new ShowAction( "seite1_tuer_ki", 0,  effects.Normal );
+ actions.seite1_aktion07 = new HttpAction( "\"robo.htm\"",true)
+FindObject( "seite1_torobl").onmousedown = function(){ seite1_torobl_MouseDown();  };
+ FindObject( "seite1_torobl").onmousemove = function(){ seite1_torobl_MoveIn(); };
+ actions.seite1_aktion06 = new ShowAction( "seite1_tuer_video", 0,  effects.Normal );
+ actions.seite1_aktion10 = new HttpAction( "\"video.htm\"",true)
+FindObject( "seite1_tovidl").onmousedown = function(){ seite1_tovidl_MouseDown();  };
+ FindObject( "seite1_tovidl").onmousemove = function(){ seite1_tovidl_MoveIn(); };
+ actions.seite1_aktion11 = new ShowAction( "seite1_tuer_comic", 0,  effects.Normal );
+ actions.seite1_aktion12 = new HttpAction( "\"comic.htm\"",true)
+FindObject( "seite1_tocoml").onmousedown = function(){ seite1_tocoml_MouseDown();  };
+ FindObject( "seite1_tocoml").onmousemove = function(){ seite1_tocoml_MoveIn(); };
+ actions.seite1_aktion13 = new ShowAction( "seite1_tuer_history", 0,  effects.Normal );
+ actions.seite1_aktion15 = new HttpAction( "\"history.htm\"",true)
+FindObject( "seite1_tohistl").onmousedown = function(){ seite1_tohistl_MouseDown();  };
+ FindObject( "seite1_tohistl").onmousemove = function(){ seite1_tohistl_MoveIn(); };
+ actions.seite1_aktion01 = new AnimationAction( "seite1_aktion01", "seite1_panraum3", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion02 = new AnimationAction( "seite1_aktion02", "seite1_tuer_ki", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion04 = new AnimationAction( "seite1_aktion04", "seite1_tuer_video", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion03 = new AnimationAction( "seite1_aktion03", "seite1_tuer_comic", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion05 = new AnimationAction( "seite1_aktion05", "seite1_tuer_history", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion17 = new AnimationAction( "seite1_aktion17", "seite1_torobl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion25 = new AnimationAction( "seite1_aktion25", "seite1_tovidl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion27 = new AnimationAction( "seite1_aktion27", "seite1_tocoml", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion29 = new AnimationAction( "seite1_aktion29", "seite1_tohistl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ OnPageReady();
+}
+</SCRIPT>
+
+</head>
+
+<body onload="Initialize();"  bgcolor="#FFFFFF">
+
+<DIV id="seite1_panraum3"
+     STYLE="position:absolute; left:0px; top:0px; width:1600px; height:250px; ">
+<img src="000001.jpg"
+     width="1600"
+     height="250"
+>
+</DIV>
+
+<DIV id="seite1_tuer_ki"
+     STYLE="position:absolute; visibility: hidden; left:148px; top:82px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_video"
+     STYLE="position:absolute; visibility: hidden; left:555px; top:78px; width:100px; height:110px; ">
+<img src="000003.png"
+     width="100"
+     height="110"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tuer_comic"
+     STYLE="position:absolute; visibility: hidden; left:948px; top:84px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_history"
+     STYLE="position:absolute; visibility: hidden; left:1352px; top:86px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_torobl"
+     STYLE="position:absolute; left:124px; top:52px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tovidl"
+     STYLE="position:absolute; left:529px; top:50px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tocoml"
+     STYLE="position:absolute; left:924px; top:56px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tohistl"
+     STYLE="position:absolute; left:1327px; top:55px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+</body>
+</html>
