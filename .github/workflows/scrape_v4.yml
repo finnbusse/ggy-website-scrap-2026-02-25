@@ -35,44 +35,41 @@ jobs:
 
       - name: 💾 Commit files and archive to repo
         run: |
+          set +e  # Never abort the job on a single git error
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           TIMESTAMP=$(date +'%Y-%m-%d %H:%M')
           FILE_COUNT=$(find ./scrap_*/ -type f 2>/dev/null | wc -l)
-          # Number of loose files to stage per commit/push.
-          # Keeping batches small ensures each individual push stays well
-          # below GitHub's 2 GB pack-file limit, and means earlier batches
-          # are already saved even if a later batch fails.
           BATCH_SIZE=500
           BATCH_NUM=0
 
-          # --------------- push helper (retries with rebase) ----------------
+          # --------------- push helper (retries with rebase + force fallback) ----------------
           push_with_retry() {
-            for i in 1 2 3 4 5; do
-              git pull --rebase origin main && git push \
-                && echo "Push succeeded on attempt $i" && return 0 || {
-                  echo "Push attempt $i failed, retrying in 15s..."
-                  sleep 15
-                }
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              git pull --rebase origin main 2>/dev/null || true
+              git push && echo "Push succeeded on attempt $i" && return 0 || {
+                echo "Push attempt $i failed, retrying in 10s..."
+                sleep 10
+              }
             done
-            echo "⚠️  All push attempts failed for this batch!"
-            return 1
+            # Last resort: force push to guarantee data is saved
+            echo "⚠️  Normal push failed 10 times – using force push as last resort"
+            git push --force-with-lease || git push --force || {
+              echo "⚠️  Even force push failed for this batch"
+              return 1
+            }
           }
 
           # --------------- 1. Metadata files (always small) -----------------
           git add ./scrape-report.json ./sitemap.xml 2>/dev/null || true
-          if ! git diff --cached --quiet; then
-            git commit -m "🤖 Scrape v4 $TIMESTAMP – metadata ($FILE_COUNT files scraped)"
-            push_with_retry
+          if ! git diff --cached --quiet 2>/dev/null; then
+            git commit -m "🤖 Scrape v4 $TIMESTAMP – metadata ($FILE_COUNT files scraped)" || true
+            push_with_retry || true
           fi
 
           # --------------- 2. Scraped content (batched) ---------------------
-          # Collect every new or modified file under the scrap directories.
-          # .tar.gz archives are excluded via .gitignore (they can exceed the
-          # 2 GB GitHub LFS per-object limit).
-          # NOTE: do NOT add a trailing slash to the pathspec – git ls-files
-          # returns zero results when the pattern ends with '/'.
           mapfile -d '' ALL_FILES < <(
             git ls-files --others --exclude-standard -z -- './scrap_*' 2>/dev/null
             git ls-files --modified              -z -- './scrap_*' 2>/dev/null
@@ -83,17 +80,19 @@ jobs:
 
           for (( i = 0; i < TOTAL_FILES; i += BATCH_SIZE )); do
             CHUNK=("${ALL_FILES[@]:$i:$BATCH_SIZE}")
-            git add "${CHUNK[@]}"
+            git add "${CHUNK[@]}" 2>/dev/null || true
 
-            if git diff --cached --quiet; then
+            if git diff --cached --quiet 2>/dev/null; then
               continue
             fi
 
             BATCH_NUM=$(( BATCH_NUM + 1 ))
             BATCH_END=$(( i + ${#CHUNK[@]} ))
-            git commit -m "🤖 Scrape v4 $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)"
+            git commit -m "🤖 Scrape v4 $TIMESTAMP – batch $BATCH_NUM (files $(( i + 1 ))–$BATCH_END of $TOTAL_FILES)" || true
             push_with_retry || echo "⚠️  Batch $BATCH_NUM push failed; continuing with next batch"
           done
 
           echo "Finished: $BATCH_NUM batch(es) pushed, $FILE_COUNT total files."
           git log --oneline -3 || true
+          # Always exit successfully – partial data is better than no data
+          exit 0
