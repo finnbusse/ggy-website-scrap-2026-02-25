@@ -1,0 +1,125 @@
+﻿/* DATEI: style.css */
+
+html {overflow-x: hidden; }
+
+body { margin-left:0px; margin-right:0px; margin-top:0px; margin-bottom:0px }
+
+tbody { margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px }
+
+A:link { font-family: Verdana; COLOR: #336699; FONT-WEIGHT: bold; TEXT-DECORATION: none; FONT-SIZE: 10pt }
+A:visited { font-family: Verdana; COLOR: #336699; FONT-WEIGHT: bold; TEXT-DECORATION: none; FONT-SIZE: 10pt }
+A:hover { font-family: Verdana; BACKGROUND-COLOR:teal; COLOR: white; FONT-WEIGHT: bold; TEXT-DECORATION: none; FONT-SIZE: 10pt }
+A:active { font-family: Verdana; COLOR: #336699; FONT-WEIGHT: bold; TEXT-DECORATION: none; FONT-SIZE: 10pt }
+
+H1 { COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold; TEXT-DECORATION: none  }
+H2 { COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold; TEXT-DECORATION: none }
+H3 { COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold; TEXT-DECORATION: none }
+H4 { COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; FONT-SIZE: 16pt; FONT-WEIGHT: normal; TEXT-DECORATION: none }
+H5 { COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold; TEXT-DECORATION: none }
+
+/*Coolmenus example - CoolMenus4 DHTML script made by Thomas Brattli from DHTMLCentral.com. Visit for more great scripts.*/
+/* CoolMenus 4 - default styles - do not edit */
+.clCMAbs{position:absolute; visibility:hidden; left:0; top:0}
+/* CoolMenus 4 - default styles - end */
+
+/*Style for the background-bar*/
+.clBar{position:absolute; width:10px; height:10px; background-color:black; visibility:hidden}
+
+/*Styles for level 0*/
+.clLevel0, .clLevel0over{position:absolute;z-index:2;padding:1px; font-family:tahoma,arial,helvetica; font-size:14px; font-weight:bold}
+.clLevel0{background-image:url('/img/transparent.gif'); color:white}
+.clLevel0over{background-image:url('/img/transparent.gif');color:yellow; cursor:pointer; }
+.clLevel0border{position:absolute; visibility:hidden;}
+
+/*Styles for level 1*/
+.clLevel1, .clLevel1over{position:absolute; padding:2px; margin-left:5px;font-family:tahoma, arial,helvetica; font-size:14px; font-weight:bold}
+.clLevel1{background-image:url('/img/transparent.gif'); color:white}
+.clLevel1over{background-color:#4d9be8; color:white; cursor:pointer; }
+.clLevel1border{position:absolute; visibility:hidden; background-color:#336699; }
+
+/*Styles for level 2*/
+.clLevel2, .clLevel2over{position:absolute;z-index:4;padding:2px; margin-left:3px;font-family:tahoma,arial,helvetica; font-size:14px; font-weight:bold}
+.clLevel2{background-image:url('/img/transparent.gif'); color:white;}
+.clLevel2over{background-color:#4d9b5c; color:Yellow; cursor:pointer;}
+.clLevel2border{position:absolute; visibility:hidden; background-color:#4d9be8; }
+
+/*Styles for level 3*/
+.clLevel3, .clLevel3over{position:absolute;z-index:4;padding:2px; margin-left:3px;font-family:tahoma,arial,helvetica; font-size:14px; font-weight:bold}
+.clLevel3{background-image:url('/img/transparent.gif'); color:white}
+.clLevel3over{background-color:Yellow; color:#336699; cursor:pointer; }
+.clLevel3border{position:absolute; visibility:hidden; background-color:#4d9b5c; }
+
+
+/* Hover mit CSS */
+.cell_over2 {
+	background-repeat: no-repeat;
+	background-color: #009999;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color: #ffffff;
+	font-weight: bold;
+	text-decoration: none;
+	display: table-cell;
+	font-size: 11px;
+	z-index: 50;
+	cursor: pointer;
+	text-align: left;
+	text-indent:10px;
+	}
+.cell_out2 {
+	background-repeat: no-repeat;
+	background-color: #e0e0e0;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color: #1F68A5;
+	font-weight: bold;
+	text-decoration: none;
+	display: table-cell;
+	font-size: 11px;
+	z-index: 50;
+	cursor:auto;
+	text-align: left;
+	text-indent:10px;
+
+	}
+.tooltext2 {
+	background-repeat: no-repeat;
+	background-color: #e0e0e0;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color: #1F68A5;
+	font-weight: bold;
+	text-decoration: none;
+	display: table-cell;
+	font-size: 11px;
+	z-index: 50;
+	cursor: auto;
+	text-align: left;
+	text-indent:10px;
+	}
+img.r {
+  display:inline;  
+  margin-left:10px;
+  border:0px;
+  height:auto;
+  width:auto;
+  float:right;
+  text-align:center;
+  }
+img.l {
+  display:inline;  
+  margin-right:10px;
+  border:0px;
+  height:auto;
+  width:auto;
+  float:left;
+  text-align:center;
+  }
+img.pfeil {
+  display:inline;  
+  margin-right:0px;
+  border:0px;
+  height:auto;
+  width:auto;
+  float:left;
+  text-align:center;
+  }
+
+  
