@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-03-15T09:27:55.176565",
-  "scrap_dir": "./scrap_2026-03-15_09-27-55",
+  "timestamp": "2026-03-15T12:17:08.393088",
+  "scrap_dir": "./scrap_2026-03-15_12-17-08",
   "targets": [
     "http://grabbe-gymnasium.de",
     "http://www.grabbe-gymnasium.de",
@@ -14,42 +14,14 @@
     "www.grabbe-gymnasium.de",
     "www.grabbe-gymnasium.info"
   ],
-  "total_urls": 14394,
-  "downloaded": 11913,
-  "skipped": 2481,
+  "total_urls": 14399,
+  "downloaded": 11773,
+  "skipped": 2626,
   "errors": 0,
   "broken_links": [
     [
-      404,
-      "http://www.grabbe-gymnasium.info/sitemap.xml"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/feed.php"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/sitemap_index.xml"
-    ],
-    [
-      403,
-      "http://www.grabbe-gymnasium.info/userfiles/"
-    ],
-    [
       "ERR",
       "https://www.grabbe-gymnasium.info"
-    ],
-    [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/sitemap_index.xml"
-    ],
-    [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/feed.php"
-    ],
-    [
-      404,
-      "http://grabbe-gymnasium.de/feed.php"
     ],
     [
       404,
@@ -61,15 +33,11 @@
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/sitemap_index.xml"
+      "http://grabbe-gymnasium.de/feed.php"
     ],
     [
       403,
       "http://grabbe-gymnasium.de/userfiles/"
-    ],
-    [
-      403,
-      "http://www.grabbe-gymnasium.de/userfiles/"
     ],
     [
       404,
@@ -77,15 +45,27 @@
     ],
     [
       404,
-      "http://grabbe-gymnasium.info/sitemap.xml"
+      "http://www.grabbe-gymnasium.de/sitemap_index.xml"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/sitemap.xml"
+      404,
+      "http://www.grabbe-gymnasium.de/feed.php"
+    ],
+    [
+      403,
+      "http://www.grabbe-gymnasium.de/userfiles/"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/sitemap.xml"
     ],
     [
       404,
       "http://grabbe-gymnasium.info/sitemap_index.xml"
+    ],
+    [
+      404,
+      "http://grabbe-gymnasium.info/feed.php"
     ],
     [
       403,
@@ -93,7 +73,31 @@
     ],
     [
       404,
-      "http://grabbe-gymnasium.info/feed.php"
+      "http://www.grabbe-gymnasium.info/sitemap.xml"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/sitemap_index.xml"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/feed.php"
+    ],
+    [
+      403,
+      "http://www.grabbe-gymnasium.info/userfiles/"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/sitemap.xml"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/sitemap_index.xml"
+    ],
+    [
+      "ERR",
+      "https://www.grabbe-gymnasium.info/feed.php"
     ],
     [
       "ERR",
@@ -101,15 +105,11 @@
     ],
     [
       "ERR",
-      "https://www.grabbe-gymnasium.info/cms_hp/"
-    ],
-    [
-      "ERR",
       "https://www.grabbe-gymnasium.info/userfiles/"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.de/feed.php"
+      "ERR",
+      "https://www.grabbe-gymnasium.info/cms_hp/"
     ],
     [
       404,
@@ -121,11 +121,27 @@
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/...Elterninfobriefe/"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Thin.ttf"
     ],
     [
       404,
       "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/oberstufe2/images/file/LuPO_SV.pdf"
     ],
     [
       404,
@@ -140,85 +156,69 @@
       "http://www.grabbe-gymnasium.info/cms_hp/kunst/images/Kunst_Wortmann_2015.jpg"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/...Elterninfobriefe/"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Thin.ttf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Light.ttf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/oberstufe2/images/file/LuPO_SV.pdf"
-    ],
-    [
       500,
-      "http://grabbe-gymnasium.de/cms_hp/informatik/"
-    ],
-    [
-      500,
-      "http://grabbe-gymnasium.de/cms_hp/wpu/?Mathe-Informatik"
+      "http://www.grabbe-gymnasium.info/grabbeTV/?grabbeTV:Schuljahr_2018-2019:DJO_verleiht_Fl%C3%BCgel"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/open/images/file/DJO-Sommerkonzert_2016.jpg"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO-Sommerkonzert_2015.jpg"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Light.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/open/images/file/2014_11_Plakat_Moe.pdf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Thin.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_Konzert_2014.jpg"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/cms_hp/kunst/image"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=Arche_Noah_LZ.jpg"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/cms_hp/kunst/images/Kunst_Wortmann_2015.jpg"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2012:Videoclip_2"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/cms_hp/kunst/images/wortmann_2015.jpg"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2012:Sommerkonzert-Trailer"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/oberstufe2/images/file/LuPO_SV.pdf"
+      "http://www.grabbe-gymnasium.info/pdf/Plakat06-10.pdf"
     ],
     [
       404,
-      "http://grabbe-gymnasium.de/userfiles/downloads/...Elterninfobriefe/"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=lz_24-6-2010.pdf"
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2009:Videoclip"
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2009:Videoclip_2"
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Thin.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=2009_1.pdf"
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/userfiles/downloads/JosefinSans-Light.ttf"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_Plakat_2009_1.pdf"
     ],
     [
       404,
-      "http://www.grabbe-gymnasium.de/cms_hp/kunst/images/wortmann_2015.jpg"
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_PGHeft_2009_1.pdf"
+    ],
+    [
+      404,
+      "http://www.grabbe-gymnasium.info/cms_hp/musik/downloads/djo_2009.pdf"
     ]
   ],
-  "duration_seconds": 498
+  "duration_seconds": 4154
 }
