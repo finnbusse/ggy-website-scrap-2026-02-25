@@ -82,7 +82,8 @@ jobs:
           done
 
           # --------------- 4. Push branch & open PR -------------------------
-          if [ "$BATCH_NUM" -gt 0 ] || ! git diff --quiet HEAD origin/main 2>/dev/null; then
+          COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo 0)
+          if [ "$COMMITS_AHEAD" -gt 0 ]; then
             git push origin "$BRANCH" || {
               echo "⚠️  Push failed"; exit 0
             }
