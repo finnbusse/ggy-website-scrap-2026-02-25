@@ -49,7 +49,8 @@ def load_scrape_run(run_dir: Path) -> dict | None:
         return None
     report = json.loads(report_path.read_text(encoding="utf-8"))
     urls = get_urls_from_sitemap(sitemap_path)
-    return {"name": run_dir.name, "report": report, "urls": urls, "path": run_dir}
+    dedup = scan_run_for_dedup(run_dir)
+    return {"name": run_dir.name, "report": report, "urls": urls, "path": run_dir, "dedup": dedup}
 
 
 def classify_url(url: str) -> str:
@@ -67,6 +68,62 @@ def classify_url(url: str) -> str:
     if ext in {".html", ".htm", ".php", ""} or "?" in url:
         return "page"
     return "other"
+
+
+def scan_run_for_dedup(run_dir: Path) -> dict:
+    """
+    Zaehlt tatsaechliche Dateien je Domain-Verzeichnis und ermittelt
+    kreuzdomaenenweite Duplikate und Error-Seiten.
+
+    Gibt zurueck:
+      canonical_files    – Dateien in www.grabbe-gymnasium.de/ (kanonisch)
+      error_pages_count  – 'Object not found!'-Seiten im kanonischen Verzeichnis
+      domain_dirs        – Anzahl vorhandener Domain-Unterverzeichnisse
+      extra_copies       – redundante Datei-Kopien durch Mehrfach-Domain-Speicherung
+      unique_real_files  – canonical_files minus Error-Seiten
+    """
+    DOMAIN_DIRS = [
+        "www.grabbe-gymnasium.de",
+        "grabbe-gymnasium.de",
+        "www.grabbe-gymnasium.info",
+        "grabbe-gymnasium.info",
+    ]
+    ERROR_MARKER = "<title>Object not found!</title>"
+
+    from collections import defaultdict
+    path_to_domains: dict[str, list] = defaultdict(list)
+    canonical_count = 0
+    error_count = 0
+    domain_dirs_present = 0
+
+    for domain in DOMAIN_DIRS:
+        ddir = run_dir / domain
+        if not ddir.exists():
+            continue
+        domain_dirs_present += 1
+        for root, _dirs, files in os.walk(ddir):
+            for fname in files:
+                fpath = Path(root) / fname
+                relpath = str(fpath.relative_to(ddir))
+                path_to_domains[relpath].append(domain)
+                if domain == DOMAIN_DIRS[0]:
+                    canonical_count += 1
+                    if fname.lower().endswith((".html", ".htm")):
+                        try:
+                            head = fpath.read_text(encoding="utf-8", errors="replace")[:1500]
+                            if ERROR_MARKER in head:
+                                error_count += 1
+                        except OSError:
+                            pass
+
+    extra_copies = sum(len(ds) - 1 for ds in path_to_domains.values() if len(ds) > 1)
+    return {
+        "canonical_files": canonical_count,
+        "error_pages_count": error_count,
+        "domain_dirs": domain_dirs_present,
+        "extra_copies": extra_copies,
+        "unique_real_files": canonical_count - error_count,
+    }
 
 
 def is_error_page_url(url: str) -> bool:
@@ -114,34 +171,42 @@ def main():
         table.add_column("Lauf", style="cyan", no_wrap=True)
         table.add_column("Zeitstempel", style="white")
         table.add_column("URLs gesamt", justify="right", style="blue")
-        table.add_column("Heruntergeladen", justify="right", style="green")
-        table.add_column("Übersprungen", justify="right", style="yellow")
+        table.add_column("Heruntergeladen\n(gemeldet)", justify="right", style="blue")
+        table.add_column("Echte Dateien\n(bereinigt)", justify="right", style="green")
+        table.add_column("Fehlerseiten", justify="right", style="red")
+        table.add_column("Duplikate\n(extra)", justify="right", style="yellow")
         table.add_column("Fehler", justify="right", style="red")
         table.add_column("Dauer", justify="right")
 
         for run in runs:
             r = run["report"]
+            d = run["dedup"]
             errs = r.get("errors", 0)
             table.add_row(
                 run["name"],
                 r.get("timestamp", "?")[:19],
                 str(r.get("total_urls", "?")),
                 str(r.get("downloaded", "?")),
-                str(r.get("skipped", "?")),
+                f"[bold green]{d['unique_real_files']}[/bold green]",
+                str(d["error_pages_count"]) if d["error_pages_count"] > 0 else "0",
+                str(d["extra_copies"]) if d["extra_copies"] > 0 else "0",
                 f"[red]{errs}[/red]" if errs > 0 else "0",
                 f"{r.get('duration_seconds', '?')}s",
             )
         console.print(table)
     else:
-        print(f"{'Lauf':<35} {'URLs':>8} {'DL':>8} {'Skip':>8} {'Err':>6} {'Dauer':>8}")
-        print("-" * 80)
+        print(f"{'Lauf':<35} {'URLs':>8} {'DL(gem)':>8} {'Echt':>6} {'Err-S':>6} {'Dupe':>7} {'Err':>6} {'Dauer':>8}")
+        print("-" * 90)
         for run in runs:
             r = run["report"]
+            d = run["dedup"]
             print(
                 f"{run['name']:<35} "
                 f"{r.get('total_urls','?'):>8} "
                 f"{r.get('downloaded','?'):>8} "
-                f"{r.get('skipped','?'):>8} "
+                f"{d['unique_real_files']:>6} "
+                f"{d['error_pages_count']:>6} "
+                f"{d['extra_copies']:>7} "
                 f"{r.get('errors',0):>6} "
                 f"{r.get('duration_seconds','?'):>7}s"
             )
@@ -193,25 +258,26 @@ def main():
     # ── Bewertung des neuesten Laufs ──────────────────────────────────────────
     latest_report = latest["report"]
     errs = latest_report.get("errors", 0)
-    dl = latest_report.get("downloaded", 0)
-    best_dl = max(r["report"].get("downloaded", 0) for r in good_runs)
+    # Use dedup-corrected unique_real_files for fair comparison
+    latest_real = latest["dedup"]["unique_real_files"]
+    best_real = max(r["dedup"]["unique_real_files"] for r in good_runs)
 
-    print("\n─── Bewertung des neuesten Scrape-Laufs ─────────────────────────────────────")
-    if errs == 0 and dl >= best_dl * 0.95:
-        print("✅  VOLLSTÄNDIG: Der neueste Scrape ist vergleichbar mit den besten früheren Läufen.")
+    print("\n--- Bewertung des neuesten Scrape-Laufs (bereinigt, ohne Duplikate/Fehlerseiten) ---")
+    if errs == 0 and latest_real >= best_real * 0.95:
+        print("OK \u2013 VOLLST\u00c4NDIG: Der neueste Scrape ist vergleichbar mit den besten fr\u00fcheren L\u00e4ufen.")
     elif errs == 0:
-        pct = dl / best_dl * 100 if best_dl else 0
-        print(f"⚠️  TEILWEISE VOLLSTÄNDIG: {dl:,} von ca. {best_dl:,} Seiten ({pct:.0f}%), 0 Fehler.")
+        pct = latest_real / best_real * 100 if best_real else 0
+        print(f"TEILWEISE: {latest_real:,} von ca. {best_real:,} echten Dateien ({pct:.0f}%), 0 Fehler.")
     else:
-        pct = dl / best_dl * 100 if best_dl else 0
+        pct = latest_real / best_real * 100 if best_real else 0
         print(
-            f"❌  UNVOLLSTÄNDIG: Nur {dl:,} von ca. {best_dl:,} Seiten ({pct:.0f}%) "
+            f"UNVOLLST\u00c4NDIG: Nur {latest_real:,} von ca. {best_real:,} echten Dateien ({pct:.0f}%) "
             f"heruntergeladen, {errs:,} Fehler."
         )
-        print("   → Empfehlung: Einen der frühen fehlerfreien Läufe als Haupt-Datenquelle verwenden.")
-        best_run = max(good_runs, key=lambda r: r["report"].get("downloaded", 0))
-        print(f"   → Bester verfügbarer Lauf: {best_run['name']} "
-              f"({best_run['report'].get('downloaded',0):,} Seiten, 0 Fehler)")
+        print("   \u2192 Empfehlung: Einen der fr\u00fchen fehlerfreien L\u00e4ufe als Haupt-Datenquelle verwenden.")
+        best_run = max(good_runs, key=lambda r: r["dedup"]["unique_real_files"])
+        print(f"   \u2192 Bester verf\u00fcgbarer Lauf: {best_run['name']} "
+              f"({best_run['dedup']['unique_real_files']:,} echte Dateien, 0 Fehler)")
 
     # ── Datei: Fehlende URLs ──────────────────────────────────────────────────
     missing_file = out_dir / "missing_in_latest.txt"
@@ -258,17 +324,22 @@ def main():
                 "name": r["name"],
                 "timestamp": r["report"].get("timestamp"),
                 "total_urls": r["report"].get("total_urls"),
-                "downloaded": r["report"].get("downloaded"),
+                "downloaded_reported": r["report"].get("downloaded"),
                 "skipped": r["report"].get("skipped"),
                 "errors": r["report"].get("errors"),
                 "duration_seconds": r["report"].get("duration_seconds"),
                 "url_count": len(r["urls"]),
+                "unique_real_files": r["dedup"]["unique_real_files"],
+                "error_pages_on_disk": r["dedup"]["error_pages_count"],
+                "cross_domain_extra_copies": r["dedup"]["extra_copies"],
+                "domain_directories": r["dedup"]["domain_dirs"],
             }
             for r in runs
         ],
         "reference_url_count": len(reference_urls),
         "good_run_count": len(good_runs),
         "latest_run": latest["name"],
+        "latest_unique_real_files": latest["dedup"]["unique_real_files"],
         "missing_from_latest": {
             t: sorted(urls) for t, urls in by_type.items()
         },

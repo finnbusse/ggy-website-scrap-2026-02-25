@@ -11,34 +11,39 @@ der Daten für die neue Schulhomepage.
 ```
 .
 ├── scrap_YYYY-MM-DD_HH-MM-SS/   # Scrape-Läufe (je Verzeichnis)
-│   ├── www.grabbe-gymnasium.de/ # Heruntergeladene Dateien
+│   ├── www.grabbe-gymnasium.de/ # Heruntergeladene Dateien (kanonisch)
 │   ├── scrape-report.json       # Statistiken des Laufs
 │   └── sitemap.xml              # Alle entdeckten URLs dieses Laufs
 ├── scrape.py                    # Scraper v1
 ├── fast_scrape.py               # Scraper v2 (schnell)
 ├── scrape_v4.py                 # Scraper v4 (aktuell, empfohlen)
-├── compare_scrapes.py           # 🔍 Vergleichstool (neu)
-└── extract_content.py           # 📦 Content-Extraktions-Pipeline (neu)
+├── verify_scrapes.py            # 🔎 Verifizierung von Fehlerseiten & Duplikaten
+├── compare_scrapes.py           # 🔍 Vergleichstool
+└── extract_content.py           # 📦 Content-Extraktions-Pipeline
 ```
 
 ---
 
 ## Status der Scrape-Läufe
 
-| Lauf | Zeitstempel | URLs gesamt | Heruntergeladen | Fehler |
-|------|-------------|------------|----------------|--------|
-| scrap_2026-03-14_23-33-13 | 2026-03-14 23:33 | 14.399 | **11.902** | ✅ 0 |
-| scrap_2026-03-15_09-27-55 | 2026-03-15 09:27 | 14.394 | **11.913** | ✅ 0 |
-| scrap_2026-03-15_12-17-08 | 2026-03-15 12:17 | 14.399 | **11.773** | ✅ 0 |
-| scrap_2026-03-15_14-07-06 | 2026-03-15 14:07 | 14.843 | 3.589 | ❌ 445 |
-| scrap_2026-03-15_14-50-52 | 2026-03-15 14:50 | 15.925 | 3.815 | ❌ 542 |
-| scrap_2026-03-15_15-09-40 | 2026-03-15 15:09 | 12.412 | 2.630 | ❌ 510 |
+| Lauf | Zeitstempel | URLs gesamt | Heruntergeladen (gemeldet) | Echte Dateien (bereinigt) | Fehler |
+|------|-------------|------------|----------------|-----------------------------|--------|
+| scrap_2026-03-14_23-33-13 | 2026-03-14 23:33 | 14.399 | 11.902 | **4.458** | ✅ 0 |
+| scrap_2026-03-15_09-27-55 | 2026-03-15 09:27 | 14.394 | 11.913 | **4.458** | ✅ 0 |
+| scrap_2026-03-15_12-17-08 | 2026-03-15 12:17 | 14.399 | 11.773 | **4.458** | ✅ 0 |
+| scrap_2026-03-15_14-07-06 | 2026-03-15 14:07 | 14.843 | 3.589 | 3.572 | ❌ 445 |
+| scrap_2026-03-15_14-50-52 | 2026-03-15 14:50 | 15.925 | 3.815 | 3.796 | ❌ 542 |
+| scrap_2026-03-15_15-09-40 | 2026-03-15 15:09 | 12.412 | 2.630 | 2.612 | ❌ 510 |
 
-> **⚠️ Wichtig:** Der neueste Scrape-Lauf (`15:09:40`) ist **unvollständig**
-> – er enthält nur 22 % der Seiten der besten Läufe und hat 510 Fehler.
+> **Hinweis – Warum unterscheiden sich „gemeldet" und „bereinigt"?**  
+> Die hohen gemeldeten Zahlen (~11.900) der ersten drei Läufe waren irreführend:
 >
-> **→ Empfehlung: `scrap_2026-03-15_09-27-55` als Haupt-Datenquelle verwenden**
-> (11.913 heruntergeladene Seiten, 0 Fehler).
+> 1. **„Object not found!"-Fehlerseiten**: Der alte Scraper hat 56 dieser Fehlerseiten heruntergeladen und nicht vollständig vom Disk entfernt.  
+> 2. **Domain-Duplikate**: Derselbe Inhalt wurde unter 4 Domain-Verzeichnissen separat gespeichert (`www.grabbe-gymnasium.de/`, `grabbe-gymnasium.de/`, `www.grabbe-gymnasium.info/`, `grabbe-gymnasium.info/`) – **7.151 der ~11.703 Dateien waren redundante Kopien (61 %)**.  
+>    Der neue Scraper (v4) konsolidiert alles korrekt unter `www.grabbe-gymnasium.de/` und hinterlässt keine Fehlerseiten.
+>
+> **→ Empfehlung: `scrap_2026-03-15_09-27-55` als Haupt-Datenquelle verwenden**  
+> (4.458 bereinigte echte Dateien, 0 Fehler, keine Duplikate nach Bereinigung).
 
 ### Was fehlt im neuesten Lauf?
 
@@ -56,6 +61,17 @@ Die vollständige Liste steht nach Ausführen von `compare_scrapes.py` in
 ---
 
 ## Werkzeuge
+
+### 0. `verify_scrapes.py` – Verifizierung von Fehlerseiten & Duplikaten
+
+Prüft alle Scrape-Läufe auf die zwei bekannten Qualitätsprobleme:
+- **„Object not found!"-Fehlerseiten** auf Disk (alter Scraper: 56, neuer Scraper: 0)
+- **Domain-Duplikate** (alter Scraper: 7.151 redundante Dateikopien = 61 %)
+
+```bash
+pip install rich
+python verify_scrapes.py
+```
 
 ### 1. `compare_scrapes.py` – Scrape-Vergleich
 
@@ -265,15 +281,19 @@ print(response)
 ## Häufige Fragen
 
 **Welchen Scrape-Lauf soll ich für die neue Homepage verwenden?**
-→ `scrap_2026-03-15_09-27-55` (11.913 Seiten, 0 Fehler, schnellster vollständiger Lauf).
+→ `scrap_2026-03-15_09-27-55` (4.458 bereinigte echte Dateien, 0 Fehler, kein Duplikat-Problem).
 
 **Ist der neueste Scrape vollständig?**
-→ Nein. Er enthält nur ~22 % der Seiten und hat 510 Fehler. Siehe `missing_in_latest.txt`
-nach Ausführen von `compare_scrapes.py`.
+→ Nein. Er enthält nur ~59 % der bereinigten Dateien des besten Laufs und hat 510 Fehler.
+Sieh `missing_in_latest.txt` nach Ausführen von `compare_scrapes.py`.
+
+**Warum meldeten die ersten drei Läufe ~11.900 Downloads, aber nur ~4.500 Dateien sind wirklich einzigartig?**
+→ Zwei Gründe: (1) Der alte Scraper speicherte Dateien unter allen 4 Domain-Varianten separat
+(7.151 redundante Kopien = 61 %). (2) 56 „Object not found!"-Fehlerseiten verblieben auf Disk.
+`verify_scrapes.py` zeigt die vollständige Analyse.
 
 **Wie viele Seiten hat die alte Homepage?**
-→ Ca. 8.500 einzigartige HTML-Seiten, davon ca. 1.600 mit eigenem Textinhalt
-(der Rest sind Bilder, PDFs, Login-Varianten, etc.).
+→ Ca. 4.458 einzigartige Dateien, davon ca. 1.600 HTML-Seiten mit eigenem Textinhalt.
 
 **Wie groß ist der extrahierte Textinhalt?**
 → Ca. 700.000 Wörter auf ~1.600 Seiten. Das entspricht ca. 4–5 Büchern.
