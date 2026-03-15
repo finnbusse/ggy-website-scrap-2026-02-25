@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-03-15T12:17:08.393088",
-  "scrap_dir": "./scrap_2026-03-15_12-17-08",
+  "timestamp": "2026-03-15T14:07:06.487150",
+  "scrap_dir": "./scrap_2026-03-15_14-07-06",
   "targets": [
     "http://grabbe-gymnasium.de",
     "http://www.grabbe-gymnasium.de",
@@ -14,25 +14,89 @@
     "www.grabbe-gymnasium.de",
     "www.grabbe-gymnasium.info"
   ],
-  "total_urls": 14399,
-  "downloaded": 11773,
-  "skipped": 2626,
-  "errors": 0,
+  "total_urls": 14843,
+  "downloaded": 3589,
+  "skipped": 10809,
+  "errors": 445,
   "broken_links": [
     [
       "ERR",
       "https://www.grabbe-gymnasium.info"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.de/sitemap.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news13.html"
     ],
     [
-      404,
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news11.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news24.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/xpages/grabbenachrichten/gg_news05.html"
+    ],
+    [
+      "404-content",
       "http://grabbe-gymnasium.de/sitemap_index.xml"
     ],
     [
-      404,
+      403,
+      "http://grabbe-gymnasium.de/userfiles/images/"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/sitemap.xml"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news15.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news14.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news18.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news21.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news12.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news00.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news20.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news10.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news17.html"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/xpages/grabbenachrichten/"
+    ],
+    [
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news16.html"
+    ],
+    [
+      "404-content",
       "http://grabbe-gymnasium.de/feed.php"
     ],
     [
@@ -40,185 +104,121 @@
       "http://grabbe-gymnasium.de/userfiles/"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.de/sitemap.xml"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.de/sitemap_index.xml"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.de/feed.php"
-    ],
-    [
       403,
-      "http://www.grabbe-gymnasium.de/userfiles/"
+      "http://grabbe-gymnasium.de/grabbenachrichten/"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.info/sitemap.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news23.html"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.info/sitemap_index.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news19.html"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.info/feed.php"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news26.html"
     ],
     [
-      403,
-      "http://grabbe-gymnasium.info/userfiles/"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news27.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/sitemap.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news22.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/sitemap_index.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news36.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/feed.php"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news34.html"
     ],
     [
-      403,
-      "http://www.grabbe-gymnasium.info/userfiles/"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news40.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/sitemap.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news41.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/sitemap_index.xml"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news33.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/feed.php"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news35.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/robots.txt"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news29.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/userfiles/"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news44.html"
     ],
     [
-      "ERR",
-      "https://www.grabbe-gymnasium.info/cms_hp/"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news30.html"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.de/leitbild/?VERANTWORTUNG"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news25.html"
     ],
     [
-      404,
-      "http://grabbe-gymnasium.de/leitbild/?WERTSCH%C3%84TZUNG"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news43.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/...Elterninfobriefe/"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news28.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Light.ttf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news46.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/JosefinSans-Thin.ttf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news31.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Thin.ttf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news32.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/userfiles/downloads/---Anmeldung_Klasse_5/JosefinSans-Light.ttf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news37.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/oberstufe2/images/file/LuPO_SV.pdf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news49.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/kunst/image"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news51.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/kunst/images/wortmann_2015.jpg"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news50.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/kunst/images/Kunst_Wortmann_2015.jpg"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news47.html"
     ],
     [
-      500,
-      "http://www.grabbe-gymnasium.info/grabbeTV/?grabbeTV:Schuljahr_2018-2019:DJO_verleiht_Fl%C3%BCgel"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news52.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/open/images/file/DJO-Sommerkonzert_2016.jpg"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news42.html"
     ],
     [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO-Sommerkonzert_2015.jpg"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/open/images/file/2014_11_Plakat_Moe.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_Konzert_2014.jpg"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=Arche_Noah_LZ.jpg"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2012:Videoclip_2"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2012:Sommerkonzert-Trailer"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/pdf/Plakat06-10.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=lz_24-6-2010.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2009:Videoclip"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?DJO-Konzerte:2009:Videoclip_2"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=2009_1.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_Plakat_2009_1.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/?download=DJO_PGHeft_2009_1.pdf"
-    ],
-    [
-      404,
-      "http://www.grabbe-gymnasium.info/cms_hp/musik/downloads/djo_2009.pdf"
+      "404-content",
+      "http://grabbe-gymnasium.de/grabbenachrichten/gg_news45.html"
     ]
   ],
-  "duration_seconds": 4154
+  "duration_seconds": 714
 }
