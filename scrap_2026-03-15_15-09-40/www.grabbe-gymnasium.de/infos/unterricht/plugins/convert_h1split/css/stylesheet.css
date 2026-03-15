@@ -1,0 +1,40 @@
+
+.cch1s_container {
+clear: both;
+max-width: 600px; 
+background: #e0e6e9;
+color: #333;
+border: 3px solid #900; 
+border-radius: 5px; 
+padding: 6px 16px; 
+margin: 0 0 24px 0;
+margin: 0 auto;
+}
+
+.cch1s_todo {
+color: #900;
+font-weight: 700;
+}
+
+.cch1s_done {
+background: #080;
+color: #fff;
+font-weight: 700;
+text-align: center; 
+padding: 12px;
+}
+
+.cch1s_container hr {
+height: 2px; 
+clear: both; 
+color: #567; 
+background-color: #567; 
+border: 0; 
+margin: 16px 0;
+}
+
+.cch1s_container a:link {color: #258; text-decoration: none;}
+.cch1s_container a:visited {color: #258; text-decoration: none;}
+.cch1s_container a:hover {color: #c60; text-decoration: underline;}
+.cch1s_container a:active {color: #c60; text-decoration: underline;}
+.cch1s_container a:focus {color: #c60; text-decoration: underline;}

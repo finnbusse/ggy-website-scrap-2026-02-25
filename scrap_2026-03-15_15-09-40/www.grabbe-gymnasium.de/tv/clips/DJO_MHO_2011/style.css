@@ -1,0 +1,143 @@
+*{
+	margin: 0;
+	padding: 0;	
+	font-family : verdana;
+	letter-spacing : normal;
+	font-weight: normal;
+	font-size: 12px;
+}
+
+BODY {
+	background-color : #ffffff;
+	padding : 0;
+	margin : 0;
+}
+
+#main{
+	background-color : #ffffff;
+	width : 955px;
+	padding-top : 19px;
+	padding-bottom : 100px;
+	padding-left : 50px;
+	padding-right : 45px;
+	text-align : left;
+	line-height : 17px;
+	text-indent : -1px;
+}
+
+A.red_all_underline {
+	color: #FF0033;
+	text-decoration: underline;
+}
+
+div.frame_grey{
+	background-color : #eceaea;
+	padding : 22px 22px 27px 27px;
+	width : 901px;
+	margin-bottom : 8px;
+	margin-top : 25px;
+	text-align : left;
+	margin-right : 9px;
+}
+
+div.frame_grey_upper{
+	background-color : #eceaea;
+	padding : 14px 22px 27px 27px;
+	width : 901px;
+	margin-bottom : 8px;
+	margin-top : 20px;
+	text-align : left;
+	margin-right : 9px;
+	line-height : 29px;
+}
+
+div.frame_white{
+	background-color : #ffffff;
+	width : 877px;
+	color : #1c4daf;
+	padding : 5px 10px 7px 9px;
+	text-align : left;
+	border : none;
+	margin-left : 0;
+	margin-right : 9px;
+	line-height : 20px;
+	margin-top : 9px;
+	margin-bottom : 0;
+}
+
+div.frame_white_upper{
+	background-color : #ffffff;
+	width : 877px;
+	color : #1c4daf;
+	padding : 5px 10px 7px 9px;
+	text-align : left;
+	border : none;
+	margin-left : 0;
+	margin-right : 9px;
+	line-height : 20px;
+	margin-top : 13px;
+	margin-bottom : 0;
+}
+
+.player{
+	margin : 15px 0px 1px 0;
+}
+
+.video_name{
+	font-size : 24px;
+	text-align : left;
+	padding-bottom : 6px;
+	text-indent : -3px;
+}
+
+.note{
+	font-weight : bold;
+	text-align : left;
+	margin-top : 43px;
+	margin-bottom : 2px;
+	font-size : 13px;
+}
+
+.upload{
+	font-weight : bold;
+	text-align : left;
+	margin-top : 18px;
+	margin-bottom : 2px;
+	font-size : 13px;
+}
+
+.copy{
+	font-weight : bold;
+	text-align : left;
+	margin-top : 7px;
+	margin-bottom : 2px;
+	font-size : 13px;
+}
+
+.files{
+	text-align : left;
+	line-height : 20px;
+	margin-top : 9px;
+}
+
+.copy{
+	text-align : left;
+	font-weight : bold;
+	padding-top : 15px;
+	margin-bottom : 10px;
+}
+
+.w3c{
+	margin : 32px 0 0 0;
+	padding : 0;
+	float: right;
+}
+
+.leftfloat{
+	float: left;
+	line-height : 40px;
+}
+
+.clear{
+	clear: both;
+}
