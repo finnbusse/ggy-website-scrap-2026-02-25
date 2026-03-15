@@ -1,0 +1,86 @@
+<html>
+	<head>
+		<meta name="GENERATOR" content="MatchWare Mediator 8.0">
+		<title>globalsound</title>
+	</head>
+	<body>
+		<object id="playerw" height="0" width="0" CLASSID="CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6" VIEWASTEXT>
+			<param name="autoStart" value="true">
+		</object>
+		<object id="playerm" height="0" width="0" CLASSID="CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6" VIEWASTEXT>
+			<param name="autoStart" value="true">
+		</object>
+
+		<script>
+
+			var playerWave = document.playerw;
+			var playerMidi = document.playerm;	
+
+			function SoundEnabled()
+			{
+				if (!playerWave || !playerWave.versionInfo) {
+					return false;
+					}
+				return true;
+			}
+
+			function StartWave(bRepeat, sUrl)
+			{
+				if (!playerWave || !playerWave.settings) {
+					return;
+				}
+
+				playerWave.settings.playCount=bRepeat?100000:1;
+				playerWave.URL = sUrl;
+				playerWave.controls.play();
+			}
+			 
+			function StopWave()
+			{
+				if (!playerWave || !playerWave.settings) {
+					return;
+				}
+
+				playerWave.controls.stop();
+			}
+
+			function IsWavePlaying()
+			{
+				if (!playerWave || !playerWave.settings) {
+					return false;
+				}
+				return (playerWave.playState == 3);
+			}
+
+			function StartMidi(bRepeat, sUrl)
+			{
+				if (!playerMidi || !playerMidi.settings) {
+					return;
+				}
+					
+				playerMidi.settings.playCount=bRepeat?100000:1;
+				playerMidi.URL = sUrl;
+				playerMidi.controls.play();
+			}
+			 
+			function StopMidi()
+			{
+				if (!playerMidi || !playerMidi.settings) {
+					return;
+				}
+
+				playerMidi.controls.stop();
+			}
+
+			function IsMidiPlaying()
+			{
+				if (!playerMidi || !playerMidi.settings) {
+					return false;
+				}
+				return (playerMidi.playState == 3);
+			}
+
+
+		</script>
+	</body>
+</html>
