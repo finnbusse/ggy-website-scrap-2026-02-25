@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta name="GENERATOR" content="MatchWare Mediator 8.0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title></title>
+
+<SCRIPT LANGUAGE="JavaScript">
+function IsOldBrowser() { return true; }
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript" SRC="md8lib.js"></SCRIPT>
+
+<script>
+</script>
+<SCRIPT LANGUAGE="JavaScript">
+
+ if ( IsOldBrowser())
+   window.location = "oldbrowser.htm";
+
+function BrowserInit() {
+ if ( IsOldBrowser()) {
+   window.location = "oldbrowser.htm";
+   return;
+ }
+ if ( location.search != "")
+   main.location = location.search.substring( 1);
+ else 
+   main.location = "seite1.htm";
+}
+
+var m_bIsTop = true;
+
+function OnPageReady() {
+}
+
+
+function Initialize() {
+ BrowserInit();
+ OnPageReady();
+}
+</SCRIPT>
+
+
+</head>
+
+<FRAMESET rows="0,*" frameborder="0" framespacing="0" border="0" onload="Initialize()">
+<FRAME name="global" scrolling="no" noresize src="global.htm" target="_self">
+<FRAMESET rows="*,250,*" frameborder="0" framespacing="0" border="0">
+<FRAME name="top" scrolling="no" noresize src="top.htm" target="_self">
+<FRAMESET cols="*,800,*" frameborder="0" framespacing="0" border="0">
+<FRAME name="left" scrolling="no" noresize src="border.htm" target="_self">
+<FRAME name="main" scrolling="no" noresize src="" target="_self">
+<FRAME name="right" scrolling="no" noresize src="border.htm" target="_self">
+</FRAMESET>
+<FRAME name="bottom" scrolling="no" noresize src="bottom.htm" target="_self">
+</FRAMESET>
+</FRAMESET>
+</html>
