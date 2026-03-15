@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html style="width: 100%; height: 100%;">
+    <head>
+        <title>Hardy Sim</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+        <script>
+            // var x = 50;
+            var i = 0; // Timercounter
+            var counter = 0; // Zähler Allelzüge
+            var timer = null;
+            var allels = [];
+            // var edges = [];
+        
+        </script>
+
+            
+        <style>
+            ::-webkit-scrollbar {
+                width: 7px;
+                height: 7px;
+                background-color: rgba(55,55,55, 0.5);
+                -webkit-border-radius: 100px;
+            }
+            ::-webkit-scrollbar:hover {
+                width: 7px;
+                background: #aaaaaa;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: rgba(85,85,85, 0.5);
+                -webkit-border-radius: 100px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover,
+            ::-webkit-scrollbar-thumb:active  {
+                background: #eeeeee;
+            }
+
+        </style>
+
+    </head>
+    <body style="width: 98%; height: 98%;">
+        <!--input id="draw" type="checkbox">Draw  --> 
+        <div id="container" style="width:97%; height: 60%; overflow: auto; background-color: darkslategrey;">
+          <div id="allelContainer" style="text-align: center; font-size: 92px; color: white; margin: 20%; width: 59%; height: 30%;">
+            <span id="allel1">X</span>&nbsp;&nbsp;&nbsp;<span id="allel2">X</span>
+          </div>       
+          <div id="phain" style="position: absolute; left: 40%; top: 40%; width: 20%; height: 10%; 
+                                 border-radius: 20%; border: 3px solid darkslategrey  ; background-color: grey;"
+               onclick="selectionList.innerHTML+='Getroffen!';"                  
+                                 
+                                 ></div>
+        </div><hr>
+        
+        <input id="fire" type="button" value="Allele ziehen" style="font-size: 24px;"
+               onclick="allelV.disabled = 'true'; counter++; cntField.innerHTML = 'Anzahl Züge: '+counter;
+                        allel1.innerHTML = Math.random()<(parseInt(allelV.value)/100)?'A':'a';
+                        allel2.innerHTML = Math.random()<(parseInt(allelV.value)/100)?'A':'a';
+                        phain.style.backgroundColor = (allel1.innerHTML == 'A' || allel2.innerHTML == 'A')?'rgb(59,84,84)':'green';
+               "
+               >&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="button" value="Reset" style="font-size: 24px;"
+               onclick="counter = 0; cntField.innerHTML = 'Anzahl Züge: '+counter; allelV.disabled = '';
+                        allel1.innerHTML = 'X'; allel2.innerHTML = 'X'; phain.style.backgroundColor = 'grey';
+                        selectionList.innerHTML = '';"
+               >
+
+        <br><br>
+        <input id="allelV" type="range" min="0" max="100" value="50" 
+               onchange="allelField.innerHTML = 'Allel A (' + parseInt(allelV.value)/100 + ')';"
+               > <span id="allelField" style="font-size: 32px;">Allel A (0.50)</span>
+        <!--input id="yV" type="range" min="0" max="100" value="50"
+               onchange="yVField.innerHTML ='Allel B (' + yV.value + ')';"
+        -->
+               
+        <br><br>       
+        <span id="cntField" style="font-size: 48px;">Anzahl Züge: 0</span>
+        
+        <br><br>
+        <input type="button" value="Selektion" style="font-size: 24px;"
+            onclick="    window.alert('Bildschirm dimmen! In den nächsten Sekunden möglichst alle Phänotypen anklicken!');
+                         allelContainer.style.display = 'none'; allelV.disabled = 'true';
+                         timer = setInterval(function () {
+                           i++;
+                           allel1.innerHTML = Math.random()<(parseInt(allelV.value)/100)?'A':'a';
+                           allel2.innerHTML = Math.random()<(parseInt(allelV.value)/100)?'A':'a';
+                           phain.style.backgroundColor = (allel1.innerHTML == 'A' || allel2.innerHTML == 'A')?'rgb(59,84,84)':'green';
+
+                           selectionList.innerHTML+='<br>Allelkombination '+allel1.innerHTML+' '+allel2.innerHTML +' : ';  
+
+                           if (i > counter) {
+                               clearInterval(timer);
+                               window.alert('Fertig!'); i = 0;
+                               allelContainer.style.display = 'block'; allelV.disabled = '';
+                           }
+                           document.getElementById('phain').style.left = (Math.random()*75)+'%';
+                           document.getElementById('phain').style.top  = 5+(Math.random()*45)+'%';
+                           //parabel.setAttribute('points', parabel.getAttribute('points') + ' ' + x + ',' + y);
+                           //if (x > 590 && x < 630 && y > 390 && y < 430) {
+                           //    clearInterval(timer);
+                           //    window.alert('BINGO!!');
+                           //}
+                        }, 850);                
+            "
+            >
+        <p id="selectionList"></p>
+    </body>  
+</html>
