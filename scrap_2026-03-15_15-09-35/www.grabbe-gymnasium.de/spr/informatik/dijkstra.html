@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html style="width: 100%; height: 100%;">
+    <head>
+        <title>SVG Graph</title>
+        <script>
+            var x = 50; var step = 0; var filename = "graph001.txt"; var sortI = 0; var sortJ = 0; var timer = null;
+            var y = 295; var clickX = 0; var scale = 1.0; var clickY = 0; var tTemp2 = 0;
+            var i = 0; var depth = 0;
+            var timer = null; var logIt = true;
+            var nodes = []; var nodeStack = []; var toDestination = nodes[0];
+            var edges = [];
+            var actEdge = 0; actNode = null; lst = null;
+            var tTemp = 0; tTempOld = 0;
+            var yPos = 0; var trainDataArray  = [];
+            function drawLine(event) {
+                pointer.setAttribute("x2", event.clientX);
+                pointer.setAttribute("y2", event.clientY);
+                var tValue = (90 + (event.clientY > 200 ? (Math.atan2(event.clientY - 200, event.clientX - 600) * 57.29577951) : 360 + (Math.atan2(event.clientY - 200, event.clientX - 600) * 57.29577951)));
+                angle.value = tValue > 360 ? tValue - 360 : tValue;
+            }
+            function rotateLine() {
+                var tLength = Math.sqrt(Math.pow(parseInt(pointer.getAttribute("y2")) - 200, 2) + Math.pow(parseInt(pointer.getAttribute("x2")) - 600, 2));
+                pointer.setAttribute('x2', 600 + (tLength * Math.sin(angle.value / 57.29577951)) + 'px');
+                pointer.setAttribute('y2', 200 - (tLength * Math.cos(angle.value / 57.29577951)) + 'px');
+                //window.alert("Pos: "+event.clientX+","+event.clientY);
+                //window.alert("Angle: "+ (90+(event.clientY>200?(Math.atan2(event.clientY-200,event.clientX-600)*57.29577951):360+(Math.atan2(event.clientY-200,event.clientX-600)*57.29577951))));
+                //window.alert("Length: "+Math.sqrt(Math.pow(event.clientY-200,2)+Math.pow(event.clientX-600,2)));
+            }
+            
+            function showDepth(value){
+                if (step === 0) {var actDepth = 0; setNodeName(value,"0");} else {var actDepth = parseInt(getNodeName(value));}
+                step++; //setNodeName(""+(actDepth))
+                if (!isNodeVisited(value)) {setNodeVisited(value,"true"); if(logIt) console.log(step); setTimeout(function(){value.setAttribute("fill","lightblue");},250*step );}
+                var nodes = getNodeNeighbours(value); 
+                for (var i = 0; i < nodes.length; i++)
+                  if (!isNodeVisited(nodes[i]) && !isNodeInArray(nodes[i],nodeStack)) {setNodeName(nodes[i],""+(actDepth+1)); nodeStack = nodeStack.concat(nodes[i]);} // oder .push()
+                var node = nodeStack.shift(); if (node) showDepth(node);
+                //   nodeStack.concat()    
+                }   
+                
+            function isNodeInArray(node,array){
+               // var inArray = false;
+               for (var i = 0; i < array.length; i++) {if (node === array[i]) return true;}
+               return false;
+            }
+             /** Walks through Graph with Stack and returns Array of Nodes that are Neighbours to Node 'value'
+             * 
+             * @param {DOM element} value
+             * 
+             */
+
+            function iterateNodes(value) {
+                if (value.getAttribute('fill')!=='blue')  {
+                value.setAttribute('fill','blue'); value.setAttribute('data-visited','true');if(logIt) console.log(tTemp);} else {
+                var nNodes = []; var first = null;
+                for (var i = 0; i < edges.length; i++){
+                    if (edges[i].getAttribute('x1') === value.getAttribute('cx') &&
+                        edges[i].getAttribute('y1') === value.getAttribute('cy')){   
+                           for (var j = 0; j < nodes.length; j++){
+                               if(edges[i].getAttribute('x2') === nodes[j].getAttribute('cx') &&
+                                  edges[i].getAttribute('y2') === nodes[j].getAttribute('cy')){
+                                     edges[i].setAttribute('stroke','orange');
+                                     if (nodes[j].getAttribute('fill') !== 'blue') nodes[j].setAttribute('fill','cyan');
+                                     // nodes[j].setAttribute('data-visited','true');
+                                     nNodes.push(nodes[j]); if (first === null && nodes[j].getAttribute('data-visited') !== 'true') {first = j; if(logIt) console.log(j); nodes[j].setAttribute('fill','blue'); nodes[j].setAttribute('data-visited','true');}
+                                     //console.log('BINGO on xy2 End!\nNode '+(j+1)+' found!'); 
+                               }                               
+                           }                           
+                     } 
+                     if (edges[i].getAttribute('x2') === value.getAttribute('cx') &&
+                         edges[i].getAttribute('y2') === value.getAttribute('cy')){   
+                           for (var j = 0; j < nodes.length; j++){
+                               if(edges[i].getAttribute('x1') === nodes[j].getAttribute('cx') &&
+                                  edges[i].getAttribute('y1') === nodes[j].getAttribute('cy')){
+                                     edges[i].setAttribute('stroke','orange');
+                                     if (nodes[j].getAttribute('fill') !== 'blue') nodes[j].setAttribute('fill','cyan');
+                                     //nodes[j].setAttribute('data-visited','true');   
+                                     nNodes.push(nodes[j]); if (first === null && nodes[j].getAttribute('data-visited') !== 'true') {first = j; if(logIt) console.log(j); nodes[j].setAttribute('fill','blue'); nodes[j].setAttribute('data-visited','true');}
+                                     //console.log('BINGO on xy1 End!\nNode '+(j+1)+' found!'); 
+                               }                               
+                           }                           
+                     }       
+                }
+                // tTemp = first!==null?first:tTempOld;
+                if (first !== null){
+                    tTempOld = tTemp; tTemp = first; if (nodeStack[nodeStack.length-1] !== tTempOld) nodeStack.push(tTempOld);
+                } else {
+                    if (tTempOld === tTemp) {
+                        tTempOld = nodeStack.pop(); if (tTempOld === undefined) window.alert("ENDE");
+                        if(logIt) console.log('Set prev. from stack:'+tTempOld);
+                    } else {
+                        tTemp = tTempOld; 
+                        if(logIt) console.log('Return to previous:'+tTemp);
+                    }
+                }
+                nodes[tTemp].setAttribute('stroke','green');
+                return nNodes;
+            } }
+            function searchGraphDFSNoRecur(value) {
+                // bla
+                // window.alert("Here i am AGAIN!");
+                if (value.getAttribute('fill')!=='blue')  {
+                   value.setAttribute('fill','blue'); value.setAttribute('data-visited','true');  } else {
+                   //var nNodes = []; var first = null; }
+                }   
+                var nodes = getNodeNeighbours(value);     
+                if(logIt) console.log("Node "+value.parentNode.lastElementChild.innerHTML+" Neighbours are:");
+                for (var i=0;i<nodes.length;i++) if(logIt) console.log(nodes[i].parentNode.lastElementChild.innerHTML);
+                // console.log("Finished Function");
+                var i = 0; while (i !== nodes.length && nodes[i].getAttribute("data-visited") === "true") i++; 
+                if (i === nodes.length) {actNode = nodeStack.pop(); if(logIt) console.log("POP, so ...");} else {
+                actNode = nodes[i]; nodeStack.push(value); if(logIt) console.log("PUSH Node "+value.parentNode.lastElementChild.innerHTML);}
+                if(logIt) console.log("ActNode: "+(actNode?actNode.parentNode.lastElementChild.innerHTML:"###  E  N  D  E  ###"));
+            }
+            function isNodeVisited(value) {return (value.getAttribute("data-visited")==="true");}
+            function setNodeVisited(value,bool){
+                if (bool==="true"){value.setAttribute("fill","blue");value.setAttribute("data-visited","true");}else{value.setAttribute("fill","yellow");value.setAttribute("data-visited","false");} }//}
+            function searchGraphDFS(value){
+                step++;
+                if (!isNodeVisited(value)) {value.setAttribute("data-visited","true"); setTimeout(function(){value.setAttribute("fill","blue");},250*step );}
+                var nodes = getNodeNeighbours(value);
+                //if (nodes.length === 1) return value.parentNode.lastElementChild.innerHTML; else
+                //{
+                for (var i = 0; i < nodes.length; i++)
+                       if (!isNodeVisited(nodes[i])) console.log("i is "+i+" and return is "+searchGraphDFS(nodes[i]));
+                //}
+                return value.parentNode.lastElementChild.innerHTML;
+            }
+            function searchGraphBFS(value){
+                step++;
+                if (!isNodeVisited(value)) {value.setAttribute("data-visited","true"); setTimeout(function(){value.setAttribute("fill","blue");},250*step );}
+                var nodes = getNodeNeighbours(value); 
+                for (var i = 0; i < nodes.length; i++)
+                  if (!isNodeVisited(nodes[i]) && !isNodeInArray(nodes[i],nodeStack)) nodeStack = nodeStack.concat(nodes[i]); // oder .push()
+                var node = nodeStack.shift(); if (node) searchGraphBFS(node);
+                //   nodeStack.concat()    
+                //}   
+                
+            }
+            
+            function searchShortestWay(from,to){
+                console.log("Under Construction");
+                function DistNode(value,distance){
+                    this.node = value;
+                    this.dist = distance;
+                }// var nodes = getNodeNeighbours(from); //for (var i=0; i<10;i++) searchNearest(from); 
+                // nodeStack = nodeStack.concat(nodes);
+                // Innere Var. from, to auch func searchNext bekannt !?
+                searchNext(new DistNode(from,0));
+                console.log("END");
+                goBack();
+                //to.setAttribute("fill","blue");
+                function searchNext(value){ // Typ: distNode
+                  console.log("step "+step+", node "+value.node.parentNode.lastElementChild.innerHTML+", dist "+parseInt(value.dist));                
+                  step++; if (step > 200) {console.log("FAILURE > 200 steps!");return;}
+                  if (!isNodeVisited(value.node)) {value.node.setAttribute("data-visited","true"); setTimeout(function(){value.node.setAttribute("fill","blue");},250*step+5000 );}
+                  if (value.node === to) {console.log("Found? Node "+value.node.parentNode.lastElementChild.innerHTML+", dist "+value.dist); }
+                  else {
+                    // if (!isNodeVisited(value.node)) {value.node.setAttribute("data-visited","true"); setTimeout(function(){value.node.setAttribute("fill","blue");},750*step );}
+                    var nodes = getNodeNeighbours(value.node); // Achtung nodes lokal, gibt es schon global !
+                    // nodeStack = nodeStack.concat(nodes); 
+                    
+                    // // NUN IN FOR ! sp�ter �bergehen oder 'update'
+                    var nearest = 100000; var nearestNode = null; var anyNodeFound = false;// Var. zum Finden des n�hesten Nachbarn
+                    for (var i = 0; i < nodes.length; i++){ // 1. ist der knoten in nodeStack? wenn ja: ist der neue weg k�rzer als gespeichert: update, sonst nix ; wenn nein: speichern ...noch aktuell?: sp�ter wieder durch nodeStack iterieren ????
+                       if (nodes[i].getAttribute("data-visited") !== "true") {
+                          var nsNodeFound = false; anyNodeFound = true;
+                          for (var j = 0; j < nodeStack.length; j++){
+                            if (nodeStack[j].node ===  nodes[i]) {nsNodeFound = true; 
+                               if ((value.dist + getDistanceOf(value.node,nodeStack[j].node)) < nodeStack[j].dist ) {
+                                   nodeStack[j].dist = value.dist + getDistanceOf(value.node , nodeStack[j].node); console.log("UPDATE NODE DIST !"); 
+                               }
+                            }
+                          }
+                          if (nsNodeFound === false) {
+                              var tn = new DistNode(nodes[i],(value.dist+getDistanceOf(nodes[i],value.node)));
+                              nodeStack.push(tn);                          
+                              step++; 
+                              console.log("step "+step+", push node "+tn.node.parentNode.lastElementChild.innerHTML);
+                          } else {
+                              
+                          }     
+             
+                       }
+                    }
+                    if (anyNodeFound === false) {step++;setTimeout(function(){value.node.setAttribute("fill","white");},250*step+5000);/*nodeStack.splice(nodeStack.indexOf(value),1);*/ console.log("ALL NEIGHBOURS IN STACK, so return"); }
+                    for (var i = 0; i < nodeStack.length; i++){               
+                       if (nodeStack[i].dist < nearest && !isNodeVisited(nodeStack[i].node)) { 
+                             nearest =    nodeStack[i].dist; nearestNode = nodeStack[i]; // new DistNode(nodes[i],nearest);
+                       }
+                    }                          
+                    //console.log("NodeStack is: "+nodeStack);
+                    // if (nearestNode === null) {step++; nearestNode = nodeStack.shift(); console.log("step "+step+", SHIFT node "+(nearestNode?nearestNode.node.parentNode.lastElementChild.innerHTML:"NULL Node"));}//shift(); //.getAttribute("data-visited" === "true")) 
+                    // if (nearestNode.node !== to /*&& nearestNode.getAttribute("data-visited") !== "true"*/) searchNext(nearestNode); 
+                    searchNext(nearestNode);
+                  }
+                  if (anyNodeFound !== false) console.log("-> Node "+value.node.parentNode.lastElementChild.innerHTML);
+                    // if (nearestNode.node === to) {to.setAttribute("fill","blue"); console.log("Found? Node "+nearestNode.node.parentNode.lastElementChild.innerHTML+", dist "+nearestNode.dist); }// var nodes = getNodeNeighbours(value);
+                    // if (!isNodeVisited(value)) {value.setAttribute("data-visited","true"); setTimeout(function(){value.setAttribute("fill","blue");},250*step );}
+                    //for (var i = 0; i < nodes.length; i++) {
+                        
+                    //}
+                }
+                function goBack(){
+                    console.log("under construction 2"); console.log("TO NODE IS "+to.parentNode.lastElementChild.innerHTML);
+                    to.setAttribute("fill","magenta");
+                    actDistNode = new DistNode(to,0); //null;
+                    while (!actDistNode.node !== from){
+                        // Suche Nachbarn von to bzw. actDistNode
+                        var bNodes = getNodeNeighbours(actDistNode.node);
+                        for (var i = 0; i < bNodes.length; i++){
+                            if (bNodes[i] === from) {console.log("FROM NODE IS "+from.parentNode.lastElementChild.innerHTML);from.setAttribute("fill","magenta");return;}
+                        }
+                        // ermittle dazu DistNodes aus nodeStack, um Entfernung vom Start zu ermitteln
+                        var bDistNodes = [];
+                          for (var j = 0; j < bNodes.length; j++){
+                           for (var i = 0; i < nodeStack.length; i++){ // ist to auf Stack? ggf. �berspringen... JA, aber nicht in bDistNodes, also egal ?
+                              if (bNodes[j] === nodeStack[i].node) bDistNodes.push(nodeStack[i]); 
+                           }
+                          }
+                        // ermittle den Knoten (mit seiner zu setzenden Dist von to), der die geringste Dist hat
+                        var totalDist = 100000; var nearestNode = null;
+                        for (var i = 0; i < bDistNodes.length; i++){
+                            if ((bDistNodes[i].dist + actDistNode.dist + getDistanceOf(bDistNodes[i].node,actDistNode.node))  < totalDist) {
+                                totalDist = bDistNodes[i].dist + actDistNode.dist + getDistanceOf(bDistNodes[i].node,actDistNode.node); 
+                                nearestNode = bDistNodes[i];
+                            }
+                        }
+                        actDistNode.dist = actDistNode.dist + getDistanceOf(actDistNode.node,nearestNode.node);
+                        actDistNode.node = nearestNode.node; //actDistNode.dist = 
+                        // wiederhole bis Zielknoten erreicht
+                        console.log("BACK OVER "+actDistNode.node.parentNode.lastElementChild.innerHTML);
+                        actDistNode.node.setAttribute("fill","cyan");// step++;setTimeout(function(){actDistNode.node.setAttribute("fill","cyan");},750*step);
+                        
+                    }
+                }
+                
+        //var nodes = getNodeNeighbours(value); 
+                
+                //var node = nodeStack.shift(); if (node) searchGraphBFS(node);
+            }
+            /*function goBack(to,from){
+                console.log("under construction 2");
+                
+            }*/
+            function getDistanceOf(node1,node2){
+               var dist = Math.sqrt(Math.pow(node1.getAttribute('cx')-node2.getAttribute('cx'),2)+Math.pow(node1.getAttribute('cy')-node2.getAttribute('cy'),2));                
+               return getEdgeLength(getEdgeOf(node1,node2))*getEdgeWeight(getEdgeOf(node1,node2));//dist; // verbinden mit unteren Fkt. 
+            }
+            function getEdgeOf(node1,node2){
+                //    
+                var edgeNN = null; // nNodes = [];
+                for (var i = 0; i < edges.length; i++){
+                    if (edges[i].getAttribute('x1') === node1.getAttribute('cx') &&
+                        edges[i].getAttribute('y1') === node1.getAttribute('cy') &&   
+                        edges[i].getAttribute('x2') === node2.getAttribute('cx') &&
+                        edges[i].getAttribute('y2') === node2.getAttribute('cy')){   
+                           edgeNN = edges[i]; if (edges[i].getAttribute("stroke") !== "none") break; else continue;                      
+                     }     
+                    if (edges[i].getAttribute('x1') === node2.getAttribute('cx') &&
+                        edges[i].getAttribute('y1') === node2.getAttribute('cy') &&   
+                        edges[i].getAttribute('x2') === node1.getAttribute('cx') &&
+                        edges[i].getAttribute('y2') === node1.getAttribute('cy')){   
+                           edgeNN = edges[i]; if (edges[i].getAttribute("stroke") !== "none") break; else continue;                      
+                     } 
+                }
+                // 
+                return edgeNN;
+            }
+            function getEdgeWeight(value){                
+                return parseFloat(value.getAttribute("data-weight")); // Under Construction
+            }
+            function getEdgeLength(value){
+                return Math.sqrt(Math.pow(value.getAttribute('x1')-value.getAttribute('x2'),2)+Math.pow(value.getAttribute('y1')-value.getAttribute('y2'),2));   
+            }
+            function updateEdgesDistance(){
+                for (var i = 0; i < edges.length; i++) {
+                    setWeight(edges[i],false); edges[i].parentNode.lastElementChild.innerHTML = parseInt(getEdgeLength(edges[i])*getEdgeWeight(edges[i])*100)/100 ;
+                }                
+            }       
+            function updateEdgesTransitionFunction(){
+                for (var i = 0; i < edges.length; i++) edges[i].parentNode.lastElementChild.innerHTML = edges[i].getAttribute("data-weight"); 
+            }
+            function testNEAWord(word){ // to be implemented
+                    actNode = getDEAStart();
+                   
+                    if (testNEATransitionsFunctions(actNode,word) === true) console.log("OK: Word is in Language"); else console.log("ERROR AT ALL");// testDEA mit actNode aufrufen, wenn return null, ERROR
+                    
+        
+                    //if (getNodeName(actNode).substr(-2) !== ".E") console.log("ERROR: No End State"); else console.log("OK: Word is in Language");//, dann ERROR
+                    // split("[")[1].split("]")[0]   ,    dann new REgExp("["+pattern+"]").exec(string) !== null (exec liefert Array oder null)
+            }
+            function testNEATransitionsFunctions(nodeDEA,word){
+                // wenn word.length === 0 dann pr�fen, if getNodeName(actNode).substring(-2) === ".E", dann return true, sonst return false
+                if (word.length === 0) {if (getNodeName(actNode).substr(-2) === ".E") return true; else return false;}
+                console.log("Actual sign is "+word.charAt(0));
+                var neighboursDEA = getNodeNeighbours(nodeDEA); actNode = null;
+                var transitions = []; for (var i = 0; i < neighboursDEA.length; i++) transitions.push(getEdgeOf(nodeDEA,neighboursDEA[i])); 
+                var tFuncs = [];
+                for (var i=0;i<transitions.length;i++){
+                    var tFuncSplit = transitions[i].parentNode.lastElementChild.innerHTML.split("...");
+                    for (var j=0;j<tFuncSplit.length;j++) tFuncs.push(tFuncSplit[j]);
+                }
+                var ret = null; for (var i=0;i<tFuncs.length;i++) {tFuncs[i]=tFuncs[i].replace("&gt;&gt;",">>");}     
+                
+                for (var i=0;i<tFuncs.length;i++) {
+                    
+                    if (getNodeName(nodeDEA).substr(0,2) === tFuncs[i].substr(0,2) 
+                            && testDEAPattern(word.charAt(0),tFuncs[i])) {           
+                        
+                          if (ret !== true) {actNode = getNodeByName(tFuncs[i].substr(-2)); console.log("Change to State "+getNodeName(actNode));
+                                             ret = testNEATransitionsFunctions(actNode,word.substr(1));
+                          }
+                          if (ret === null) console.log("MSG: No Transition found. Go back..."); 
+                } }
+                if (ret === null) console.log("ERROR: No Transition found"); return ret;
+            }
+    
+    
+    
+            function testDEAWord(word){ step = 0;// to be implemented
+                    actNode = getDEAStart();
+                    for (var i=0;i<word.length;i++){ //... word.charAt
+                       if(testDEATransitionsFunctions(actNode,word.charAt(i)) === null) {console.log("ERROR: No Transition found"); return;}// testDEA mit actNode aufrufen, wenn return null, ERROR
+                    } if (getNodeName(actNode).substr(-2) !== ".E") console.log("ERROR: No End State"); else {testDEATransitionsFunctions(actNode,"END"); console.log("OK: Word is in Language");}//, dann ERROR
+                    // split("[")[1].split("]")[0]   ,    dann new REgExp("["+pattern+"]").exec(string) !== null (exec liefert Array oder null)
+            }
+            function testDEATransitionsFunctions(nodeDEA,sign){console.log("Actual sign is "+sign);
+                var neighboursDEA = getNodeNeighbours(nodeDEA); actNode = null; step++; setTimeout(function(){for(var i=0;i<nodes.length;i++) nodes[i].setAttribute("fill","orange"); nodeDEA.setAttribute("fill","white");},500*step);
+                var transitions = []; for (var i = 0; i < neighboursDEA.length; i++) transitions.push(getEdgeOf(nodeDEA,neighboursDEA[i])); 
+                var tFuncs = [];
+                for (var i=0;i<transitions.length;i++){
+                    var tFuncSplit = transitions[i].parentNode.lastElementChild.innerHTML.split("...");
+                    for (var j=0;j<tFuncSplit.length;j++) tFuncs.push(tFuncSplit[j]);
+                }
+                var ret = null; for (var i=0;i<tFuncs.length;i++) {tFuncs[i]=tFuncs[i].replace("&gt;&gt;",">>");}     
+                for (var i=0;i<tFuncs.length;i++) {
+                    if (getNodeName(nodeDEA).substr(0,2) === tFuncs[i].substr(0,2) && testDEAPattern(sign,tFuncs[i])) {actNode = ret = getNodeByName(tFuncs[i].substr(-2)); console.log("Change to State "+getNodeName(actNode));} 
+                } return ret;
+            }
+            function getDEAStart(){
+                for (var i = 0; i < nodes.length; i++) if (getNodeName(nodes[i]).search(".S") !== -1) {console.log(getNodeName(nodes[i])); return nodes[i];}
+            }
+            function testDEAPattern(sign,pattern){
+                var regX = new RegExp("["+pattern.split("[")[1].split("]")[0]+"]"); if (regX.exec(sign) !== null) return true; else return false;
+            }
+            
+            function getNodeByName(value){
+                for (var i = 0; i < nodes.length; i++) if (getNodeName(nodes[i]).substr(0,2) === value) return nodes[i];
+                    
+            }
+            function updateEdgesWeight(){
+                for (var i = 0; i < edges.length; i++) {
+                    setWeight(edges[i],false); edges[i].parentNode.lastElementChild.innerHTML = getEdgeWeight(edges[i]) ;
+                }                
+            }    
+            function showWeights(){
+                for (var i = 0; i < edges.length; i++) edges[i].parentNode.lastElementChild.setAttribute("fill","black");
+            }
+            function hideWeights(){
+                for (var i = 0; i < edges.length; i++) edges[i].parentNode.lastElementChild.setAttribute("fill","grey");
+            }
+            function getWeightOfEgde(value){
+                return value.getAttribute("data-weight");
+            }
+            function setNodeName(value,name){ // only for Wurmi Neurons ...
+                value.parentNode.lastElementChild.innerHTML = name;
+            }
+            function getNodeName(value){
+                return value.parentNode.lastElementChild.innerHTML;
+            }        
+            function setSynapseWeights(a,b,c,d,e,f){
+                edges[0].setAttribute("data-weight",a);
+                edges[1].setAttribute("data-weight",b);
+                edges[2].setAttribute("data-weight",c);
+                edges[3].setAttribute("data-weight",d);
+                edges[4].setAttribute("data-weight",e);
+                edges[5].setAttribute("data-weight",f);
+                updateEdgesWeight();
+            }
+            function setInputNeurons(a,b,c,d,e,f){
+                setNodeName(nodes[0],a);
+                setNodeName(nodes[1],b);
+                setNodeName(nodes[2],c);
+                setNodeName(nodes[3],d);
+                setNodeName(nodes[4],e);
+                setNodeName(nodes[5],f);
+            }
+            function getSynapseWeights(){
+                var a = edges[0].getAttribute("data-weight");
+                var b = edges[1].getAttribute("data-weight");
+                var c = edges[2].getAttribute("data-weight");
+                var d = edges[3].getAttribute("data-weight");
+                var e = edges[4].getAttribute("data-weight");
+                var f = edges[5].getAttribute("data-weight");
+                
+                return [parseFloat(a),parseFloat(b),parseFloat(c),parseFloat(d),parseFloat(e),parseFloat(f)];// updateEdgesWeight();
+            }
+            function getInputNeurons(){
+                return [parseInt(getNodeName(nodes[0])),parseInt(getNodeNames(nodes[1])),parseInt(getNodeNames(nodes[2])),parseInt(getNodeName(nodes[3])),parseInt(getNodeNames(nodes[4])),parseInt(getNodeNames(nodes[5]))];
+                //setNodeName(nodes[1],b);
+                //setNodeName(nodes[2],c);
+            }
+            function getSum(){          // only useful for Wurmi Neurons
+                var sum = 0;
+                for (var i = 0; i < 6; i++) if (getNodeName(nodes[i] ) === "1") sum += parseFloat(edges[i].getAttribute("data-weight"));
+                if (sum >= 1) console.log("### AP ####"); else console.log("... no AP ...");
+                
+                return sum;
+            }
+            function prepareNetwork(){ // only Wurmi ...
+                loadGraph();
+                // setSynapseWeights(0,0,0,0,0,0);
+                trainDataArray[0] = [0,1,0,0,0,0,false]; // Pattern to (not) be recognized
+                trainDataArray[1] = [0,1,1,0,0,0,false];
+                trainDataArray[2] = [1,1,0,0,0,0,false];
+                trainDataArray[3] = [1,1,1,0,0,0,false];
+                trainDataArray[4] = [1,0,0,0,0,0,false];
+                trainDataArray[5] = [0,0,1,0,0,0,false];
+                trainDataArray[6] = [1,0,1,0,0,0,true]; // Attention: 0,0,0, 0,0,0 could possibly cause endless loop !!
+            }
+            function testPattern(a,b,c,d,e,f){
+                setInputNeurons(a,b,c,d,e,f);
+                console.log("Sum of Pattern is :"+getSum());
+            }
+            function train(){
+                trainFinished = 0; // var trainedArr = [];
+                //for (var i = 0; i < trainDataArray.length; i++){
+                //    trainedArr.push(false);
+                //}
+                while (trainFinished !== trainDataArray.length){
+                    trainFinished = 0;                    
+                    for (var i = 0; i < trainDataArray.length; i++){
+                        if (trainNetwork(i)) trainFinished++;                     
+                    }
+                    //for (var i = 0; i < trainDataArray.length; i++){
+                    //    
+                    //}
+                }
+                //while (!(trainNetwork(0)&&trainNetwork(1)&&trainNetwork(2)&&trainNetwork(3)&&
+                //         trainNetwork(4)&&trainNetwork(5)&&trainNetwork(6)
+                //         )){}
+                console.log("#### READY ######");
+            }
+            function trainNetwork(id){
+                var trained = false;// console.log(trainDataArray); // setSynapseWeights(0,0,0);
+                // for (var i = 0; i < trainDataArray.length; i++){
+                    console.log("Entry "+id+" is :"+trainDataArray[id][0]+","+trainDataArray[id][1]+","+trainDataArray[id][2]+","+trainDataArray[id][3]+","+trainDataArray[id][4]+","+trainDataArray[id][5]);
+                    console.log("Entry "+id+" is pattern recognition "+trainDataArray[id][6]);
+                // }
+                console.log("-------"); console.log("We need >= 1 at Node 4");
+                console.log("Actual set is returning : "+getSum());
+                setInputNeurons(trainDataArray[id][0],trainDataArray[id][1],trainDataArray[id][2],trainDataArray[id][3],trainDataArray[id][4],trainDataArray[id][5]);
+                console.log("Set Input Neurons to Train Data Array Index "+id);
+                console.log("Use only Input with Value 1, so"); 
+                //console.log((trainDataArray[id][0] === 1?"Neuron 1":"-------")+(trainDataArray[id][1] === 1?"Neuron 2":"-------")+(trainDataArray[id][2] === 1?"Neuron 3":"-------"));
+                if (trainDataArray[id][6] === true) {console.log("IS A PATTERN, so increase excit. / inhib."); var pattern = true;}else
+                                                    {console.log("IS NOT A PATTERN, so decrease excit. / inhib."); var pattern = false;}
+                if ((getSum() >= 1 && pattern) || (getSum() < 1 && !pattern)) {console.log(" --- NO TRAINING NEEDED ... ---"); trained = true;} else{
+                  if (pattern){            
+                     while (getSum() < 1){
+                       var w = getSynapseWeights();                       
+                       setSynapseWeights((w[0]+=trainDataArray[id][0] === 1?0.1:0),(w[1]+=trainDataArray[id][1] === 1?0.1:0),(w[2]+=trainDataArray[id][2] === 1?0.1:0),(w[3]+=trainDataArray[id][3] === 1?0.1:0),(w[4]+=trainDataArray[id][4] === 1?0.1:0),(w[5]+=trainDataArray[id][5] === 1?0.1:0));
+                       console.log("reset weights ...");
+                     }  
+                  } else {
+                     while (getSum() >= 1){
+                       var w = getSynapseWeights();                       
+                       setSynapseWeights((w[0]+=trainDataArray[id][0] === 1?-0.1:0),(w[1]+=trainDataArray[id][1] === 1?-0.1:0),(w[2]+=trainDataArray[id][2] === 1?-0.1:0),(w[3]+=trainDataArray[id][3] === 1?-0.1:0),(w[4]+=trainDataArray[id][4] === 1?-0.1:0),(w[5]+=trainDataArray[id][5] === 1?-0.1:0));
+                       console.log("reset weights ...");
+                     }  
+                
+                
+                
+                
+                
+                
+                
+                  }
+                }
+                console.log("OK, now we get :"+getSum());
+                return trained;
+    
+    
+            }
+            function setActiveNode(i){
+                tTemp = i-1;
+                actNode = nodes[tTemp];
+            }
+            function BinaryTree(){
+                this.actNode = null; this.count = 0; this.rootNode = null;
+                this.add = function(btNode){ if (this.rootNode === null) {this.rootNode = btNode;} this.actNode = this.rootNode; yPos = parseInt(this.rootNode.node.getAttribute("cy"))+500; this.addR(btNode);};
+                this.addR = function(btNode){
+                   if (btNode !== this.rootNode) { ///console.log("Before...");
+                       if (parseInt(btNode.getContent()) < parseInt(this.actNode.getContent())) {
+                          if (this.actNode.getLeftChild() !== null) {
+                              this.actNode = this.actNode.getLeftChild();
+                              this.addR(btNode); // Rekursion
+                          } else {this.actNode.setLeftChild(btNode);} 
+                       } else if (parseInt(btNode.getContent()) > parseInt(this.actNode.getContent())) {
+                          if (this.actNode.getRightChild() !== null) {
+                              this.actNode = this.actNode.getRightChild();
+                              this.addR(btNode); // Rekursion
+                          } else {this.actNode.setRightChild(btNode);}   
+                       } else {console.log("DUPLICATE, NOT INSERTED !!"); posCircle(btNode.node, 15,15);;}
+                       
+                       
+                       //this.actNode.setLeftChild(btNode);    
+                       //this.actNode = btNode;
+                   } else {this.actNode = this.rootNode; console.log("set actNode to rootNode");}
+                   hideWeights();
+                };
+                this.layout = function(direction){
+                    function layoutR(btNode,depthR,cx,dir,rNode){
+                      var parentX = cx;
+                      var parentY = (direction !== undefined)?parseFloat(rNode.node.getAttribute("cy"))-(depthR*60):parseFloat(rNode.node.getAttribute("cy"))+(depthR*60); //parseFloat(this.node.getAttribute("cy"));
+                      var childX  = parseFloat(btNode.node.getAttribute("cx"));
+                      //var childY  = parseFloat(child.node.getAttribute("cy"));
+                      var newX    = dir==="left"?parentX-(1050*(1/((depthR+1)*1.6))):parentX+(1050*(1/((depthR+1)*1.6)));   //(parentX===1050?525:((Math.abs(1050-parentX))/2.55));//(1050*(20/parentY));
+                      //var newY    = parentY + 61; // beide sp�ter abh�ngig machen von der tiefe des graphen ?
+                      if (dir !== null) posCircle(btNode.node,newX,parentY);
+        
+                      if (btNode.getLeftChild() !== null) layoutR(btNode.getLeftChild(),depthR+1,parseFloat(btNode.node.getAttribute("cx")),"left",rNode);
+                      //posCircle(btNode.node,parseInt(window.prompt("Delta x:","1.0")),0.1); // console.log("Value is :"+btNode.getContent());
+                      if (btNode.getRightChild() !== null) layoutR(btNode.getRightChild(),depthR+1,parseFloat(btNode.node.getAttribute("cx")),"right",rNode);     
+      
+                    }
+                    var depth = 0; 
+                    layoutR(this.rootNode,depth,parseFloat(this.rootNode.node.getAttribute("cx")),null,this.rootNode);
+                };
+                this.search = function(value){
+                    function searchR(btNode){ /*console.log("in func on search value "+value);*/ var retNode = null;
+                       if (btNode === null) {console.log("NULL POINTER EXCEPTION!"); return null;} else {if(logIt) console.log("in searchR on node w value "+btNode.getContent());
+                         if (btNode.getContent() === value) {if(logIt) console.log("Found and return"); btNode.node.setAttribute("fill","white"); return btNode;} else {
+                           if (btNode.getLeftChild() !== null)  retNode = searchR(btNode.getLeftChild());
+                           if (btNode.getRightChild() !== null && retNode === null) retNode = searchR(btNode.getRightChild());
+                         } if(logIt) console.log("End on node Value "+btNode.getContent()); return retNode;
+                       }// return null; // actNod; // this.actNode;
+                    }
+                    // var actNod = this.rootNode; // geht var auch mit 2 Instanzen von BinaryTree ??
+                    var ret = searchR(this.rootNode); if (ret === null) console.log("value "+value+" not found"); return ret;
+                };
+                this.searchNumber = function(value){
+                    function searchR(btNode){ /*console.log("in func on search value "+value);*/ var retNode = null;
+                       if (btNode === null) {console.log("NULL POINTER EXCEPTION!"); return null;} else {if(logIt) console.log("in searchR on node w value "+btNode.getContent());
+                         if (btNode.getContent() === value) {if(logIt) console.log("Found and return"); btNode.node.setAttribute("fill","white"); return btNode;} else {
+                           if (btNode.getLeftChild() !== null  && (parseInt(btNode.getContent()) > parseInt(value)))  retNode = searchR(btNode.getLeftChild());
+                           if (btNode.getRightChild() !== null && (parseInt(btNode.getContent()) < parseInt(value))) retNode = searchR(btNode.getRightChild());
+                         } if(logIt) console.log("End on node Value "+btNode.getContent()); return retNode;
+                       }// return null; // actNod; // this.actNode;
+                    }
+                    // var actNod = this.rootNode; // geht var auch mit 2 Instanzen von BinaryTree ??
+                    var ret = searchR(this.rootNode); if (ret === null) console.log("value "+value+" not found"); return ret;
+                };
+        
+        
+                this.searchParent = function(value){
+                    function searchParentR(btNode){ /*console.log("in func on search value "+value);*/ var retNode = null;
+                       if (btNode === null) {console.log("NULL POINTER EXCEPTION!"); return null;} else {if(logIt) console.log("in searchParentR on node w value "+btNode.getContent());
+                         //if (btNode.getContent() === value) {console.log("Found and return"); btNode.node.setAttribute("fill","white"); return btNode;} else {
+                           if (btNode.getLeftChild() !== null) {if (btNode.getLeftChild() === value) return {"node": btNode, "dir": "left"}; else retNode = searchParentR(btNode.getLeftChild());}
+                           if (btNode.getRightChild() !== null && retNode === null) {if (btNode.getRightChild() === value) return {"node": btNode, "dir": "right"}; else retNode = searchParentR(btNode.getRightChild());}
+                         if(logIt) console.log("End on node Value "+btNode.getContent()); return retNode;
+                       }// return null; // actNod; // this.actNode;
+                    }
+                    // var actNod = this.rootNode; // geht var auch mit 2 Instanzen von BinaryTree ??
+                    var ret = searchParentR(this.rootNode); if (ret === null) console.log("value "+value+" not found"); return ret;
+                };   
+                
+                this.remove = function(btNode){ if (btNode === null || btNode.getContent() === "50") {console.log("ERROR: node is Null or Root");return null;}
+                    function removeR(btN){ // Achtung: diese Funktion wird nicht benutzt, stattdessen search
+                        var retNode = null;
+                        if (btN.getLeftChild() === btNode) {btN.leftChild = null; getEdgeOf(btN.node,btNode.node).setAttribute("stroke","none"); return btN;}
+                        if (btN.getRightChild() === btNode){btN.rightChild = null; getEdgeOf(btN.node,btNode.node).setAttribute("stroke","none"); return btN;}
+                        if (btN.getLeftChild() !== null)  retNode = removeR(btN.getLeftChild());
+                        if (btN.getRightChild() !== null && retNode === null) retNode = removeR(btN.getRightChild());
+                        if(logIt) console.log("End on node Value "+btN.getContent()); return retNode;
+                    }    
+                    if (btNode.getLeftChild() !== null && btNode.getRightChild() === null){    
+                      //var ret = removeR(this.rootNode); if (ret !== null) {
+                          // btNode.node.setAttribute("fill","grey"); 
+                          var sP = this.searchParent(btNode); getEdgeOf(btNode.node,sP.node.node).setAttribute("stroke","none"); getEdgeOf(btNode.node,btNode.getLeftChild().node).setAttribute("stroke","none");
+                          posCircle(btNode.node,5,5); if (sP.dir === "left") {sP.node.setLeftChild(btNode.getLeftChild());} else {sP.node.setRightChild(btNode.getLeftChild());} // tif (ret.di     r === "")
+                          btNode.node.setAttribute("fill","grey"); btNode.leftChild = null; console.log("OK: btNode "+btNode.getContent()+" w LC removed"); return btNode;
+                      } //}
+                    
+                    if (btNode.getLeftChild() === null && btNode.getRightChild() !== null){    
+                      //var ret = removeR(this.rootNode); if (ret !== null) {
+                          // btNode.node.setAttribute("fill","grey"); 
+                          var sP = this.searchParent(btNode); getEdgeOf(btNode.node,sP.node.node).setAttribute("stroke","none"); getEdgeOf(btNode.node,btNode.getRightChild().node).setAttribute("stroke","none");
+                          posCircle(btNode.node,-5,5); if (sP.dir === "left") {sP.node.setLeftChild(btNode.getRightChild());} else {sP.node.setRightChild(btNode.getRightChild());} // tif (ret.di     r === "")
+                          btNode.node.setAttribute("fill","grey"); btNode.rightChild = null; console.log("OK: btNode "+btNode.getContent()+" w RC removed"); return btNode;
+                      } //}        
+                                      
+                    if (btNode.getLeftChild() === null && btNode.getRightChild() === null){
+                        var sP = this.searchParent(btNode); getEdgeOf(btNode.node,sP.node.node).setAttribute("stroke","none");//var ret = removeR(this.rootNode); if (ret !== null) {
+                        if (sP.dir === "left") {sP.node.leftChild = null;} else {sP.node.rightChild = null;} console.log("OK: btNode "+btNode.getContent()+" removed from Tree"); btNode.node.setAttribute("fill","grey"); return btNode;
+                            
+                        } /*}*/ else {console.log("OK: btNode "+btNode.getContent()+" w 2C removed"); 
+                    
+                        var sP = this.searchParent(btNode); var min = this.searchMin(btNode.getRightChild());
+                        getEdgeOf(btNode.node,sP.node.node).setAttribute("stroke","none"); 
+                        getEdgeOf(btNode.node,btNode.getRightChild().node).setAttribute("stroke","none");
+                        getEdgeOf(btNode.node,btNode.getLeftChild().node).setAttribute("stroke","none");
+                        posCircle(btNode.node,-5,5); if (sP.dir === "left") {sP.node.setLeftChild(btNode.getRightChild());} else {sP.node.setRightChild(btNode.getRightChild());} // tif (ret.di     r === "")
+                        btNode.node.setAttribute("fill","grey"); btNode.rightChild = null; var tmpChild = btNode.leftChild; btNode.leftChild = null;
+                        min.setLeftChild(tmpChild); //this.layout();
+                        // btNode.leftChild = null;
+                        return btNode;}
+                };       
+                this.rotate = function(value1,value2){
+                    console.log("Rotate Nodes "+value1+" and "+value2);
+                    var node1 = this.search(""+value1);
+                    if (node1 !== null) console.log("Found Node "+value1); else {console.log("ERROR"); return;}
+                    var node2 = this.search(""+value2);
+                    if (node2 !== null) console.log("Found Node "+value2); else {console.log("ERROR"); return;}
+                    if (node1.getRightChild() === node2)     {var dirE = "r"; var upper = node1; var lower = node2; var tNode = lower.leftChild; console.log("Node1 is parent"); lower.leftChild = upper; }
+                    else if (node2.getLeftChild() === node1) {var dirE = "l"; var upper = node2; var lower = node1; var tNode = lower.rightChild; console.log("Node2 is parent"); lower.rightChild = upper;}
+                    else {console.log("ERROR: NO PROPER RELATIONSHIP FOUND"); return;}
+                    posCircle(node1.node,15,15); posCircle(node2.node,35,35); if (tNode !== null) posCircle(tNode.node,45,45);//.  out();
+                    
+                    var sP = this.searchParent(upper); 
+                    if (sP.node !== null) console.log("Found Parent of "+getNodeName(upper.node)+" : "+getNodeName(sP.node.node));
+                    //if (dirE === "r") var cChild = tNode.getLeftChild(); else var cChild = tNode.getRightChild();
+                    console.log("Lowest new Child is "+getNodeName(tNode.node));
+                    getEdgeOf(upper.node,sP.node.node).setAttribute("stroke","magenta");//var ret = removeR(this.rootNode); if (ret !== null) {
+                    if (tNode !== null) getEdgeOf(tNode.node,lower.node).setAttribute("stroke","magenta");
+                    if (sP.dir === "left") {sP.node.setLeftChild(lower);} else {sP.node.setRightChild(lower);} // = null;} console.log("OK: btNode "+btNode.getContent()+" removed from Tree"); btNode.node.setAttribute("fill","grey"); return btNode;
+                    if (tNode !== null) {if (dirE === "l") upper.setLeftChild(tNode); else upper.setRightChild(tNode);}        
+                        /* else {console.log("OK: btNode "+btNode.getContent()+" w 2C removed"); 
+                    
+                        var sP = this.searchParent(btNode); var min = this.searchMin(btNode.getRightChild());
+                        getEdgeOf(btNode.node,sP.node.node).setAttribute("stroke","none"); 
+                        getEdgeOf(btNode.node,btNode.getRightChild().node).setAttribute("stroke","none");
+                        getEdgeOf(btNode.node,btNode.getLeftChild().node).setAttribute("stroke","none");
+                        posCircle(btNode.node,-5,5); if (sP.dir === "left") {sP.node.setLeftChild(btNode.getRightChild());} else {sP.node.setRightChild(btNode.getRightChild());} // tif (ret.di     r === "")
+                        btNode.node.setAttribute("fill","grey"); btNode.rightChild = null; var tmpChild = btNode.leftChild; btNode.leftChild = null;
+                        min.setLeftChild(tmpChild); //this.layout();
+                        // btNode.leftChild = null;
+                        return btNode;} */
+                };       
+
+                this.searchMin = function(mNode){           
+                      while (mNode.getLeftChild() !== null) mNode = mNode.getLeftChild();  
+                      return mNode; // console.log("ERROR: Node has Child(s)"); return null;   }
+        
+                };
+                this.searchMedian = function(mNode){console.log("CALL this.countNodes() first!"); step = 0; if (mNode === undefined) this.searchMedianR(this.rootNode); else this.searchMedianR(mNode);};
+                this.searchMedianR = function(btNode){ //step++;      
+                    if (btNode.getLeftChild() !== null) this.searchMedianR(btNode.getLeftChild());
+                    console.log("Value is :"+btNode.getContent()); step++; if (step !==  parseInt(this.count/2)+ 1) btNode.node.setAttribute("fill","lightgreen"); else btNode.node.setAttribute("fill","darkgreen");
+                    if (btNode.getRightChild() !== null) this.searchMedianR(btNode.getRightChild());
+                };
+                this.countNodes = function(mNode){step = 0; if (mNode === undefined) this.countNodesR(this.rootNode); else this.countNodesR(mNode);};
+                this.countNodesR = function(btNode){ //step++;      
+                    if (btNode.getLeftChild() !== null) this.countNodesR(btNode.getLeftChild());
+                    step++; //console.log("Value is :"+btNode.getContent()); step++; if (step !==  parseInt(nodes.length/2)+1) btNode.node.setAttribute("fill","lightgreen"); else btNode.node.setAttribute("fill","darkgreen");
+                    if (btNode.getRightChild() !== null) this.countNodesR(btNode.getRightChild()); this.count = step;//parseInt(step/2)+1;
+                };        
+                this.countDepth = function(mNode){
+                   // stepL = 0; stepR = 0; 
+                   if (mNode === undefined) var stepL = countDepthR(this.rootNode.leftChild); else var stepL = countDepthR(mNode.leftChild);
+                   if (mNode === undefined) var stepR = countDepthR(this.rootNode.rightChild); else var stepR = countDepthR(mNode.rightChild);
+                   function countDepthR(btNode){ var stL = 0; var stR = 0; if(btNode === null) return -1;       
+                    if (btNode.getLeftChild() !== null) stL = 1 + countDepthR(btNode.getLeftChild());
+                    if(btNode.getLeftChild() === null && btNode.getRightChild() === null) return 0;//console.log("Value is :"+btNode.getContent()); step++; if (step !==  parseInt(nodes.length/2)+1) btNode.node.setAttribute("fill","lightgreen"); else btNode.node.setAttribute("fill","darkgreen");
+                    if (btNode.getRightChild() !== null) stR = 1 + countDepthR(btNode.getRightChild()); //parseInt(step/2)+1;
+                    return stL<=stR?stR:stL;
+                } console.log("LEFT: "+(1+stepL)); console.log("RIGHT: "+(1+stepR));};        
+        
+                this.traverseInOrder = function(){step = 0; this.traverseInOrderR(this.rootNode);};
+                this.traverseInOrderR = function(btNode){ //step++;      
+                    if (btNode.getLeftChild() !== null) this.traverseInOrderR(btNode.getLeftChild());
+                    console.log("Value is :"+btNode.getContent()); step++; setTimeout(function(){btNode.node.setAttribute("fill","lightgreen");},1000*step);
+                    if (btNode.getRightChild() !== null) this.traverseInOrderR(btNode.getRightChild());
+                };
+                this.traversePreOrder = function(){step = 0; this.traversePreOrderR(this.rootNode);};
+                this.traversePreOrderR = function(btNode){ //step++;      
+                    console.log("Value is :"+btNode.getContent()); step++; setTimeout(function(){btNode.node.setAttribute("fill","orange");},1000*step);
+                    if (btNode.getLeftChild() !== null) this.traversePreOrderR(btNode.getLeftChild());
+                    //console.log("Value is :"+btNode.getContent()); step++; setTimeout(function(){btNode.node.setAttribute("fill","orange");},1000*step);
+                    if (btNode.getRightChild() !== null) this.traversePreOrderR(btNode.getRightChild());
+                };
+                this.traversePostOrder = function(){step = 0; this.traversePostOrderR(this.rootNode);};
+                this.traversePostOrderR = function(btNode){ //step++;      
+                    if (btNode.getLeftChild() !== null) this.traversePostOrderR(btNode.getLeftChild());
+                    //console.log("Value is :"+btNode.getContent()); step++; setTimeout(function(){btNode.node.setAttribute("fill","lightblue");},1000*step);
+                    if (btNode.getRightChild() !== null) this.traversePostOrderR(btNode.getRightChild());
+                    console.log("Value is :"+btNode.getContent()); step++; setTimeout(function(){btNode.node.setAttribute("fill","blue");},1000*step);
+                };
+            return this;                
+            }
+            function prepare2BT(start){
+                bt = new BinaryTree(); bu = new BinaryTree(); bt.add(new BTNode("50")); bt.add(new BTNode("25")); bt.add(new BTNode("75")); bt.add(new BTNode("12")); bt.add(new BTNode("88"));    
+                for (var i = 0; i < 29; i++) bt.add(new BTNode(parseInt(Math.random()*100))); bt.layout();
+                var b2 = new BTNode(start); posCircle(b2.node, 1050,800); bu.add(b2); for (var i = 0; i < 9; i++) bu.add(new BTNode(parseInt(Math.random()*100))); bu.layout();
+            }
+            function sortBT1(value){
+                var n = bt.search(value); if (n !== null) n = bt.remove(n); bt.layout(1); bt.layout(); if (n !== null) bt.add(n); bt.layout();
+            }
+            function buildBT(max){if (max === undefined) max = 50; if (max > 5)max -= 5; step = max; logIt = false;
+                bt = new BinaryTree(); bu = new BinaryTree(); var b2= new BTNode("50"); posCircle(b2.node,1050,600); bt.add(b2); bt.add(new BTNode("25")); bt.add(new BTNode("75")); bt.add(new BTNode("12")); bt.add(new BTNode("88"));
+                timer2 = setInterval(function(){if (step === 0) clearInterval(timer2); else {var rndN = ""+parseInt(Math.random()*100); while (bt.search(rndN) !== null) rndN = ""+parseInt(Math.random()*100); step--; bt.add(new BTNode(rndN)); bt.layout();}},1000);}
+            function moveBT(max){ if (max === undefined) max = 50;
+                for (var i = 1; i < max; i++) setTimeout(function(){var n = bt.search(""+parseInt(Math.random()*100)); if (n !== null) n = bt.remove(n); if (n !== null) bu.add(n); bu.layout();},1500*i);
+            }
+            function BTNode (content){
+                // this.node = addNode(true); // yPos setzen oder posCircle(this.node,-x,-y) vorher differenz ermitteln !!! sp�ter auf false , dann edge einf�gen bei setR/LChild
+                if (nodes.length === 0) {/*rootNode = this; */ this.node = addNode(true);} else this.node = addNode(false);
+                this.leftChild = null; this.rightChild = null; this.value = null;
+                // if (content !== null) this.setContent(content);
+                this.setLeftChild = function(child){
+                    this.leftChild = child;
+                    for (var i = 0; i < nodes.length; i++){
+                        if (nodes[i] === this.node) tTemp = i;
+                    }
+                    changeCircle(child.node,1); // 
+                    var parentX = parseFloat(this.node.getAttribute("cx"));
+                    var parentY = parseFloat(this.node.getAttribute("cy"));
+                    var childX  = parseFloat(child.node.getAttribute("cx"));
+                    var childY  = parseFloat(child.node.getAttribute("cy"));
+                    var newX    = parentX - (1050*(20/parentY));//(parentX===1050?525:((Math.abs(1050-parentX))/2.55));//(1050*(20/parentY));
+                    var newY    = parentY + 77; // beide spaeter abh�ngig machen von der tiefe des graphen ?
+                    posCircle(child.node,newX,newY);
+                    //getParentNode, getChildNode je x,y ; sorge daf�r, dass Child y +60 und x-50
+                };
+                this.setRightChild = function(child){
+                    this.rightChild = child;
+                    for (var i = 0; i < nodes.length; i++){
+                        if (nodes[i] === this.node) tTemp = i;
+                    }
+                    changeCircle(child.node,1);
+                    var parentX = parseFloat(this.node.getAttribute("cx"));
+                    var parentY = parseFloat(this.node.getAttribute("cy"));
+                    var childX  = parseFloat(child.node.getAttribute("cx"));
+                    var childY  = parseFloat(child.node.getAttribute("cy"));
+                    var newX    = parentX + (1050*(20/parentY));// (parentX===1050?525:((Math.abs(parentX-1050))/2.55));// (1050*(20/parentY)); //200;
+                    var newY    = parentY + 77; // beide spaeter abh�ngig machen von der tiefe des graphen ?
+                    posCircle(child.node,newX,newY);
+                };
+                this.getLeftChild = function(){
+                    if (this.leftChild !== null) this.leftChild.node.setAttribute("fill","magenta"); // sp�ter this.node weiss oder so, beide setTimeout
+                    return this.leftChild;
+                };
+                this.getRightChild = function(){
+                    if (this.rightChild !== null) this.rightChild.node.setAttribute("fill","cyan");
+                    return this.rightChild;
+                };
+                this.setContent = function(name){
+                    this.node.parentNode.lastElementChild.innerHTML = name;
+                };
+                this.getContent = function(){
+                    return this.node.parentNode.lastElementChild.innerHTML;
+                };
+                this.setValue = function(value){
+                    this.value = value;
+                };
+                this.getValue = function(){
+                    return this.value;
+                };
+                if (content !== undefined) this.setContent(content); // Achtung: hier, weil no Hoisting !!! ????
+                return this; //Type BTNode;
+            }    
+            
+            function List(){
+                this.first = null; this.last =null; this.current = null; // node = addNode(true); // yPos setzen oder posCircle(this.node,-x,-y) vorher differenz ermitteln !!! sp�ter auf false , dann edge einf�gen bei setR/LChild
+                // if (nodes.length === 0) {rootNode = this; this.node = addNode(true);} else this.node = addNode(false);
+                // this.leftChild = null; this.rightChild = null; this.value = null;
+                this.ListItem = function (content){
+                    this.node = addNode(true); if (nodes.length === 1) posCircle(this.node,50,800); hideWeights();
+                    this.node.parentNode.lastElementChild.innerHTML = content;
+                    this.next = null; this.previous = null;
+                    for (var i = 0; i < nodes.length; i++){
+                        if (nodes[i] === this.node ) tTemp = i;
+                    }
+                    return this;//.node;
+                };
+                this.append = function(content){
+                    var aNode = new this.ListItem(content);// var listItem = addNode(true);
+                    aNode.previous = this.last;
+                    if(aNode.previous!== null) aNode.previous.next = aNode;
+                    if (this.first === null) {this.first = aNode; this.current = aNode; aNode.node.setAttribute("fill","orange");} else aNode.node.setAttribute("fill","lightblue");//}// this.current; //for (var i = 0; i < nodes.length; i++){
+                    this.last = aNode; // this.current ; //  else this.last = this.node.previous;//    if (nodes[i] === listItem) tTemp = i;
+                    //}
+                    // changeCircle(child.node,1); // 
+                    if (aNode.previous !== null){
+                      var parentX = parseFloat(aNode.previous.node.getAttribute("cx"));
+                      var parentY = parseFloat(aNode.previous.node.getAttribute("cy"));
+                      var childX  = parseFloat(aNode.node.getAttribute("cx"));
+                      var childY  = parseFloat(aNode.node.getAttribute("cy"));
+                      var newX    = parentX + 71;
+                      var newY    = parentY + 11; // beide sp�ter abh�ngig machen von der tiefe des graphen ?   
+                      posCircle(aNode.node,newX,newY);
+                    }//getParentNode, getChildNode je x,y ; sorge daf�r, dass Child y +60 und x-50
+                };
+                this.insert = function(content){
+                    if (this.current === null) {console.log("Has No Access !");} else {
+                    var aNode = new this.ListItem(content);// var listItem = addNode(true);
+                    aNode.previous = this.current; aNode.next = this.current.next;
+                    // if(aNode.previous!== null) aNode.previous.next = aNode; // entspricht current.next !
+                    aNode.node.setAttribute("fill","lightblue");//}// this.current; //for (var i = 0; i < nodes.length; i++){
+                    aNode.next.previous = aNode; ; this.current.next = aNode; //  else this.last = this.node.previous;//    if (nodes[i] === listItem) tTemp = i;
+                    //}
+                    // changeCircle(child.node,1); // 
+                    if (aNode.previous !== null){
+                      var parentX = parseFloat(aNode.previous.node.getAttribute("cx"));
+                      var parentY = parseFloat(aNode.previous.node.getAttribute("cy"));
+                      var childX  = parseFloat(aNode.node.getAttribute("cx"));
+                      var childY  = parseFloat(aNode.node.getAttribute("cy"));
+                      var newX    = parentX + 31;
+                      var newY    = parentY - 71; // beide sp�ter abh�ngig machen von der tiefe des graphen ?   
+                      posCircle(aNode.node,newX,newY); // fehlt noch Edges l�schen / neu anlegen
+                    }//getParentNode, getChildNode je x,y ; sorge daf�r, dass Child y +60 und x-50
+                    }
+                var ed = getEdgeOf(aNode.node,this.last.node);
+                ed.setAttribute("x1",this.current.node.getAttribute("cx"));
+                ed.setAttribute("y1",this.current.node.getAttribute("cy"));
+                var ed2 = getEdgeOf(this.current.node,aNode.next.node); //,this.last.node);
+                ed2.setAttribute("x1",aNode.node.getAttribute("cx"));
+                ed2.setAttribute("y1",aNode.node.getAttribute("cy"));
+                for (var i = 0; i < nodes.length; i++){
+                        if (nodes[i] === this.last.node) tTemp = i;
+                }
+                this.next();
+                };
+                this.remove = function(){   // sp�ter insert, concat oder remove draus machen ?
+                    this.current.node.setAttribute("fill","grey"); 
+                    this.current.node.setAttribute("stroke","grey");// .rightChild = child;
+                    this.current.previous.next = this.current.next;
+                    this.current.next.previous = this.current.previous;
+                    this.current = this.current.next; this.current.node.setAttribute("fill","orange");
+                };
+                this.getContent = function(){
+                    this.current.node.setAttribute("fill","green");// this.leftChild.node.setAttribute("fill","magenta"); // sp�ter this.node weiss oder so, beide setTimeout
+                    return this.current.node.parentNode.lastElementChild.innerHTML; //leftChild;
+                };
+                this.setContent = function(content){
+                    this.current.node.parentNode.lastElementChild.innerHTML = content; //rightChild.node.setAttribute("fill","cyan");
+                    this.current.node.setAttribute("fill","red");// return this.rightChild;
+                };
+                this.toFirst = function(){
+                    if (this.current !== null) this.current.node.setAttribute("fill","lightblue");
+                    this.current = this.first; 
+                    this.current.node.setAttribute("fill","orange");// node.parentNode.lastElementChild.innerHTML = name;
+                };
+                this.next = function(){
+                    this.current.node.setAttribute("fill","lightblue");
+                    this.current = this.current.next;//!==null?this.current.next:this.current; 
+                    if(this.current !==null) this.current.node.setAttribute("fill","orange");
+                    // console.log("not implemented yet");
+                };
+                this.previous = function(){
+                    this.current.node.setAttribute("fill","lightblue");
+                    this.current = this.current.previous!==null?this.current.previous:this.current; 
+                    this.current.node.setAttribute("fill","orange");
+                    // null; console.log("not implemented yet"); // value = value;
+                };
+                this.hasAccess = function(){
+                    return this.current !== null;
+                };
+                this.bubbleSortArray = function(interval){
+                  this.toFirst(); sortI = 0; sortJ = 0;
+                  timer = setInterval(function(){
+                      if (sortI < nodes.length){
+                          if (sortJ < nodes.length-1){
+                             if (parseInt(getNodeName(nodes[sortJ]))>parseInt(getNodeName(nodes[sortJ+1]))) {
+                                var tmpName = getNodeName(nodes[sortJ]);
+                                setNodeName(nodes[sortJ],getNodeName(nodes[sortJ+1]));
+                                setNodeName(nodes[sortJ+1],tmpName);
+                             }
+                             nodes[sortJ].setAttribute("fill","lightgreen");
+                             nodes[sortJ+1].setAttribute("fill","orange");
+                             sortJ++;
+                          } else {sortJ = 0; sortI++;}
+                          //sortI++;
+                      } else clearInterval(timer); // sortI++;
+                      
+                      
+                      
+                      
+                  },interval>99&&interval<2001?interval:500);
+                  
+                  
+                  /*for (var i = 0; i < nodes.length; i++){
+                     for (var j = 0; j < nodes.length-1; j++){
+                        if (parseInt(getNodeName(nodes[j]))>parseInt(getNodeName(nodes[j+1]))) {
+                            var tmpName = getNodeName(nodes[j]);
+                            setNodeName(nodes[j],getNodeName(nodes[j+1]));
+                            setNodeName(nodes[j+1],tmpName);
+                        }
+                     } 
+                  }*/
+                };
+                return this; //Type List;
+            }
+            function prepareRandomList(){
+              list = new List();
+              for (var i = 0; i < 20; i++) list.append(parseInt(Math.random()*100));
+            
+            
+            
+            }
+            function getNodeNeighbours(value) {
+                var nNodes = [];
+                for (var i = 0; i < edges.length; i++){
+                    if (edges[i].getAttribute('x1') === value.getAttribute('cx') &&
+                        edges[i].getAttribute('y1') === value.getAttribute('cy')){   
+                           for (var j = 0; j < nodes.length; j++){
+                               if(edges[i].getAttribute('x2') === nodes[j].getAttribute('cx') &&
+                                  edges[i].getAttribute('y2') === nodes[j].getAttribute('cy')){
+                                     edges[i].setAttribute('stroke','orange');
+                                     // if (nodes[j].getAttribute('fill') !== 'blue') nodes[j].setAttribute('fill','cyan');
+                                     // nodes[j].setAttribute('data-visited','true');
+                                     nNodes.push(nodes[j]); //if (first === null && nodes[j].getAttribute('data-visited') !== 'true') {first = j; console.log(j); nodes[j].setAttribute('fill','blue'); nodes[j].setAttribute('data-visited','true');}
+                                     //console.log('BINGO on xy2 End!\nNode '+(j+1)+' found!'); 
+                               }                               
+                           }                           
+                     } 
+                     if (edges[i].getAttribute('x2') === value.getAttribute('cx') &&
+                         edges[i].getAttribute('y2') === value.getAttribute('cy')){   
+                           for (var j = 0; j < nodes.length; j++){
+                               if(edges[i].getAttribute('x1') === nodes[j].getAttribute('cx') &&
+                                  edges[i].getAttribute('y1') === nodes[j].getAttribute('cy')){
+                                     edges[i].setAttribute('stroke','orange');
+                                     // if (nodes[j].getAttribute('fill') !== 'blue') nodes[j].setAttribute('fill','cyan');
+                                     // nodes[j].setAttribute('data-visited','true');   
+                                     nNodes.push(nodes[j]); //if (first === null && nodes[j].getAttribute('data-visited') !== 'true') {first = j; console.log(j); nodes[j].setAttribute('fill','blue'); nodes[j].setAttribute('data-visited','true');}
+                                     //console.log('BINGO on xy1 End!\nNode '+(j+1)+' found!'); 
+                               }                               
+                           }                           
+                     }       
+                }
+                // tTemp = first!==null?first:tTempOld;
+                /*if (first !== null){
+                    tTempOld = tTemp; tTemp = first; if (nodeStack[nodeStack.length-1] !== tTempOld) nodeStack.push(tTempOld);
+                } else {
+                    if (tTempOld === tTemp) {
+                        tTempOld = nodeStack.pop(); if (tTempOld === undefined) window.alert("ENDE");
+                        console.log('Set prev. from stack:'+tTempOld);
+                    } else {
+                        tTemp = tTempOld; 
+                        console.log('Return to previous:'+tTemp);
+                    }
+                }
+                nodes[tTemp].setAttribute('stroke','green');** *** */ 
+                return nNodes;
+            } 
+            function setWeight(value,dialog){
+                var weight = (parseInt(parseFloat(value.getAttribute("data-weight"))*1000))/1000;
+                // console.log(weight); return;
+                console.log("Prior Edge Weight Factor is "+weight); 
+                if (dialog) {weight = (parseInt(parseFloat(window.prompt("Enter New Weight Factor",weight))*100))/100;
+                             value.setAttribute('data-weight',weight);}
+                value.setAttribute('stroke-dasharray',+Math.abs(weight*10)+','+Math.abs(weight*10));
+                value.setAttribute('stroke',weight>=0?'lightgreen':'lightsalmon');
+            }
+            function setTransitionFunction(value){
+                //var weight = (parseInt(parseFloat(value.getAttribute("data-weight"))*1000))/1000;
+                // console.log(weight); return;
+                //console.log("Prior Edge Weight Factor is "+weight); 
+                var weight = window.prompt("Enter New Transition Functions (q0[a-z]>>q1...q1[c]>>q2)",value.getAttribute("data-weight"));
+                             value.setAttribute('data-weight',weight);
+                value.setAttribute('stroke','white');
+                value.parentNode.lastElementChild.innerHTML = weight; //stroke',weight>=0?'lightgreen':'lightsalmon');
+            }            
+            function loadGraph(){
+                //window.alert("Not Implemented Yet");
+                   var message = "load"; //command.value; // {"actor":"tony","age":100,"pirate":"st�rtebeker",direction":"saveOnServer"}'; //   alternativ: 'load';
+                   var request = "http://www.grabbe-gymnasium.de/wpii/09/mainf/graphServer.php?filename="+filename+"&req="+message; //'{"actor":"fuchsi","age":10}';
+                   fetch(request)
+                   .then(r => r.ok ? r.text() : 'Can not load data!')
+                   .then(t => {window.alert(t);
+                               svg.innerHTML = "";
+                               // RESET node, edges Array and ALL variables !!!
+                               step = 0; actEdge = 0; tTemp = 0; nodeStack = []; nodes = []; edges = [];
+                               // split t by \n or better by ; (works, so remove linebreak in php not necessary) 
+                               var lines = t.split(";\n");
+                               for (var i = 0; i < lines.length-1; i++) { //for (var line in lines){
+                                 var line = lines[i];
+                                 //window.alert(line);
+                                 var attribs = line.split(",");
+                                 if (line.indexOf("edge")!==-1) {
+                                            
+                           var tLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                           var tLText = document.createElementNS('http://www.w3.org/2000/svg','text');
+                           var tLGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                           //  var tTemp = nodes.length % 3?nodes.length-2:0;   // Achtung: dreckig, weil int zu Boolean !
+                           tLine.setAttribute('x1', attribs[1].split(":")[1]); // nodes[tTemp].getAttribute('cx'));
+                           tLine.setAttribute('y1', attribs[2].split(":")[1]); // nodes[tTemp].getAttribute('cy'));
+                           tLine.setAttribute('x2', attribs[3].split(":")[1]); // nodes[nodes.length - 1].getAttribute('cx'));
+                           tLine.setAttribute('y2', attribs[4].split(":")[1]); // nodes[nodes.length - 1].getAttribute('cy'));
+                           tLine.setAttribute('stroke', 'green');
+                           tLine.setAttribute('name', 'edge');
+                           tLine.setAttribute('onclick','setWeight(this,true);');
+                           tLine.setAttribute('oncontextmenu', 'setTransitionFunction(this); event.preventDefault();');
+var weight = Math.sqrt(Math.pow(tLine.getAttribute('x2')-tLine.getAttribute('x1'),2)+Math.pow(tLine.getAttribute('y2')-tLine.getAttribute('y1'),2));
+                           tLine.setAttribute('data-weight', attribs[5].split(":")[1]); // weight); // Attribut name gibt es in SVG
+                           tLine.setAttribute('stroke-width', '4px');
+                           tLText.setAttribute('x',parseInt((parseInt(tLine.getAttribute('x1'))+parseInt(tLine.getAttribute('x2')))/2)); // doppel parseInt ist unn�tig, sollte TextNode gelten
+                           tLText.setAttribute('y',parseInt((parseInt(tLine.getAttribute('y1'))+parseInt(tLine.getAttribute('y2')))/2));
+                           tLText.setAttribute('font-size',24);
+                           tLText.appendChild(document.createTextNode(parseInt(weight*10)/10));
+                           tLGroup.appendChild(tLine);
+                           tLGroup.appendChild(tLText);
+                           svg.appendChild(tLGroup); //svg.appendChild(tLine); svg.appendChild(tLText);
+                           edges.push(tLine);
+                           /*svg.removeChild(nodes[tTemp].parentNode);
+                           svg.appendChild(nodes[tTemp].parentNode);
+                           svg.removeChild(nodes[nodes.length - 1].parentNode);
+                           svg.appendChild(nodes[nodes.length - 1].parentNode);*/
+
+                                 
+                                 } else {      
+                       // attribs[0].split(":")[1] ggf. var a = b.substring(start,end); char at position end not included !
+                       // create g , e/n , t
+                       var tCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                           tCircle.setAttribute('cx', attribs[1].split(":")[1]);
+                           tCircle.setAttribute('cy', attribs[2].split(":")[1]);//(Attribute No 2 and from it the Value (is [1]), not Name
+                           tCircle.setAttribute('r', 30); // Math.random() * 20 + 20);
+                           tCircle.setAttribute('fill', 'orange');
+                           tCircle.setAttribute('stroke', 'red');
+                           tCircle.setAttribute('name', 'node');
+                           tCircle.setAttribute('data-visited', 'false');// Attribut name gibt es in SVG
+                           tCircle.setAttribute('stroke-width', '5px');
+                           tCircle.setAttribute('oncontextmenu', 'changeCircle(this,1); event.preventDefault();');
+                           tCircle.setAttribute('ondblclick', 'setNodeName(actNode,window.prompt("New Node Name")); event.stopPropagation();');//'posCircle(this,0,0);');
+                           tCircle.setAttribute('onclick', 'changeCircle(this,0); event.stopPropagation();');
+                       var tGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                       tGroup.appendChild(tCircle);
+                       nodes.push(tCircle);
+                       var tText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                           tText.setAttribute('x', nodes[nodes.length - 1].getAttribute('cx') - 6);
+                           tText.setAttribute('y', nodes[nodes.length - 1].getAttribute('cy') - (-5));
+                           tText.setAttribute('font-size', 24);
+                           tText.setAttribute('font-weight', 'bold');
+                           tText.appendChild(document.createTextNode(attribs[3].split(":")[1])); //nodes.length));
+                       nodes[nodes.length - 1].parentNode.appendChild(tText);
+                       svg.appendChild(tGroup); // - x , damit im Zentrum ; wie geht svg.innerHTML ??       
+                                 }    
+             
+             
+
+ 
+                               // setAttribs to e/n, t
+                               // assemble g element , add to svg, add to nodes / egdes array
+                               // laeuft so net: fehlt text-element: svg.appendChild(document.createTextNode("Coming Soon"));
+        
+
+                                  
+                               
+                               }
+
+                   });                    
+                   window.alert("FETCHING ..."); 
+                               var tLText = document.createElementNS('http://www.w3.org/2000/svg','text');
+                   
+                               tLText.setAttribute('x',400);
+                               tLText.setAttribute('y',600);
+                               tLText.setAttribute('font-size',74);
+                               tLText.appendChild(document.createTextNode("Coming Soon..."));
+                               svg.appendChild(tLText);
+        
+        
+            }
+            function saveGraph(){
+                //window.alert("Not Implemented Yet");                
+                var message = ""; 
+                for (var i = 0; i < edges.length; i++){
+                    message += "edge:"+i+",x1:"+parseInt(edges[i].getAttribute("x1"))+",y1:"+parseInt(edges[i].getAttribute("y1"))+",x2:"+parseInt(edges[i].getAttribute("x2"))+",y2:"+parseInt(edges[i].getAttribute("y2"))+",weight:"+edges[i].getAttribute("data-weight")+";";
+                }
+                for (var i = 0; i < nodes.length; i++){
+                    message += "node:"+i+",x:"+parseInt(nodes[i].getAttribute("cx"))+",y:"+parseInt(nodes[i].getAttribute("cy"))+",text:"+nodes[i].parentNode.lastElementChild.innerHTML+";";
+                }
+                ////command.value; // {"actor":"tony","age":100,"pirate":"st�rtebeker",direction":"saveOnServer"}'; //   alternativ: 'load';
+                var request = "http://www.grabbe-gymnasium.de/wpii/09/mainf/graphServer.php?req="+message; //'{"actor":"fuchsi","age":10}';
+                fetch(request)
+                .then(r => r.ok ? r.text() : 'Can not save data!')
+                .then(t => {window.alert(t);});                    
+                window.alert("FETCHING ..."); 
+                
+            }
+            /** Changes Position of Circle by random or by x and y values 
+             * 
+             * @param {DOM element} value is node to be moved
+             * @param {int} x is value to move in x direction, if 0 them randomly
+             * @param {int} y see x
+             * @returns {undefined}
+             */
+            function posCircle(value,x,y) {
+                var oldPosX = value.getAttribute('cx');
+                var oldPosY = value.getAttribute('cy');
+                var rndPosX = x>6?x:x-(-oldPosX);
+                var rndPosY = y>6?y:y-(-oldPosY);
+                for (var i = 0; i < edges.length; i++) {
+                    var changed = false;
+                    if (edges[i].getAttribute('x1') === oldPosX && edges[i].getAttribute('y1') === oldPosY) {
+                        edges[i].setAttribute('x1', rndPosX);
+                        edges[i].setAttribute('y1', rndPosY); changed = true;
+                    }
+                    if (edges[i].getAttribute('x2') === oldPosX && edges[i].getAttribute('y2') === oldPosY) {
+                        edges[i].setAttribute('x2', rndPosX);
+                        edges[i].setAttribute('y2', rndPosY); changed = true;
+                    }
+                    if (changed) {
+                        //edges[i].parentNode.lastElementChild.innerHTML = "changed";
+                        var weight = Math.sqrt(Math.pow(edges[i].getAttribute('x2')-edges[i].getAttribute('x1'),2)+Math.pow(edges[i].getAttribute('y2')-edges[i].getAttribute('y1'),2));
+                        var compX = (parseInt(edges[i].getAttribute('x1'))+parseInt(edges[i].getAttribute('x2')))/2;
+                        var compY = (parseInt(edges[i].getAttribute('y1'))+parseInt(edges[i].getAttribute('y2')))/2;
+                        //tLText.appendChild(document.createTextNode(parseInt(weight*10)/10));
+                        edges[i].parentNode.lastElementChild.setAttribute("y",compY);
+                        edges[i].parentNode.lastElementChild.setAttribute("x",compX);
+                        edges[i].parentNode.lastElementChild.innerHTML = parseInt(weight*10)/10;
+                    }
+                    // hier text von line pos anpassen !!!!!!!!!!!!!!!!!!!!!!!!!!!
+                }
+                value.setAttribute('cx', rndPosX);
+                value.setAttribute('cy', rndPosY);
+                value.parentNode.lastElementChild.setAttribute('x', rndPosX - 6);
+                value.parentNode.lastElementChild.setAttribute('y', rndPosY + 5);
+
+            }
+            /** Changes Circle color and Click Mode 
+             * 
+             * @param {DOM element} value
+             * @param {int} clickMode
+             * @returns {undefined}
+             */
+            function changeCircle(value, clickMode) { //tTemp2 = tTemp;
+                for (var i = 0; i < nodes.length; i++) {
+                    if (nodes[i] === value && clickMode === 0) {
+                        //nodes[tTemp].setAttribute('stroke', 'magenta');
+                        tTemp2 = tTemp; tTemp = i; // tTemp2 = tTemp; //actNode = nodes[tTemp]; 
+                        yPos = 60 - (-nodes[tTemp].getAttribute('cy'));
+                    } else {
+                    /*var r = parseInt(Math.random() * 255);
+                    var g = parseInt(Math.random() * 255);
+                    var b = parseInt(Math.random() * 255);*/ 
+                    nodes[i].setAttribute('stroke', 'green');} //rgb(' + r + ',' + g + ',' + b + ')');} //  if (clickMode === 124) e.preventDefault();
+                } nodes[tTemp2].setAttribute("stroke","magenta");
+                if (clickMode === 2) {tTemp = tTemp2; } // WIR BRAUCHEN tTemp als Index !!
+                actNode = value;                 
+                value.setAttribute('stroke', clickMode === 0 ? 'red' : 'blue');//-width', parseInt(value.getAttribute('stroke-width')) + 1 + 'px');
+                if (clickMode > 0) {
+                    var tLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    var tLText = document.createElementNS('http://www.w3.org/2000/svg','text');
+                    var tLGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    tLine.setAttribute('x1', nodes[tTemp].getAttribute('cx'));
+                    tLine.setAttribute('y1', nodes[tTemp].getAttribute('cy'));
+                    tLine.setAttribute('x2', value.getAttribute('cx')); // Math.random() * 800);
+                    tLine.setAttribute('y2', value.getAttribute('cy')); //Math.random() * 600);
+                    tLine.setAttribute('stroke', 'blue');
+                    tLine.setAttribute('name', 'edge');
+                    tLine.setAttribute('onclick','setWeight(this,true);');
+                    tLine.setAttribute('oncontextmenu', 'setTransitionFunction(this); event.preventDefault();');
+var weight = Math.sqrt(Math.pow(tLine.getAttribute('x2')-tLine.getAttribute('x1'),2)+Math.pow(tLine.getAttribute('y2')-tLine.getAttribute('y1'),2));
+                    tLine.setAttribute('data-weight', 1); // weight); // Attribut name gibt es in SVG
+                    tLine.setAttribute('stroke-width', '4px');
+                    tLText.setAttribute('x',parseInt((parseInt(tLine.getAttribute('x1'))+parseInt(tLine.getAttribute('x2')))/2)); // doppel parseInt ist unn�tig, sollte TextNode gelten
+                    tLText.setAttribute('y',parseInt((parseInt(tLine.getAttribute('y1'))+parseInt(tLine.getAttribute('y2')))/2));
+                    tLText.setAttribute('font-size',24);
+                           tLText.appendChild(document.createTextNode(parseInt(weight*10)/10));
+                           tLGroup.appendChild(tLine);
+                           tLGroup.appendChild(tLText);
+                           svg.appendChild(tLGroup); //svg.appendChild(tLine); svg.appendChild(tLText);
+                    //svg.appendChild(tLine);
+                    edges.push(tLine);
+                    svg.removeChild(value.parentNode);
+                    svg.removeChild(nodes[tTemp].parentNode);
+                    svg.appendChild(value.parentNode);
+                    svg.appendChild(nodes[tTemp].parentNode); //event.preventDefault(); 
+
+                }
+            }
+            function resetGraph() { step = 0; depth = 0; actEdge = 0; tTemp = 0; nodeStack = [];
+                timer = setInterval(function () {
+                    if (actEdge === edges.length) {
+                        
+                        if (tTemp === nodes.length) {
+                           clearInterval(timer);
+                           edges[actEdge - 1].setAttribute('stroke', 'green'); edges[actEdge-1].setAttribute("stroke-width","4");
+                           actEdge = 0; actNode = null; tTemp = 0; nodes[0].setAttribute("stroke","green"); nodes[0].setAttribute("fill","red"); nodes[0].setAttribute("data-visited","false");
+                       } else {nodes[tTemp].setAttribute("fill","yellow"); nodes[tTemp].setAttribute("data-visited","false");tTemp++;            
+                    }} else {
+                        edges[actEdge].setAttribute('stroke', 'red'); edges[actEdge].setAttribute("stroke-width","8");
+                        if (actEdge > 0)
+                           {edges[actEdge - 1].setAttribute('stroke', 'green'); edges[actEdge-1].setAttribute("stroke-width","4");}
+                        actEdge++;
+                    }
+                }, 50); //updateEdgesDistance();
+            }
+            function addNode(boolVar){
+                       var tCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                       tCircle.setAttribute('cx', (nodes.length > 0 || !boolVar) ? ((Math.random() * 800 - 400) + parseInt(nodes[tTemp].getAttribute('cx'))) : 1050);//(Math.random() * 20 * (nodes.length+10))-(10 * (nodes.length+10))+450);
+                       tCircle.setAttribute('cy', yPos += 60);//(Math.random() * 20 * (nodes.length+10))-(10 * (nodes.length+10))+300);
+                       tCircle.setAttribute('r', 30); // Math.random() * 20 + 20);
+                       tCircle.setAttribute('fill', 'orange');
+                       tCircle.setAttribute('stroke', 'red');
+                       tCircle.setAttribute('name', 'node');
+                       tCircle.setAttribute('data-visited', 'false');// Attribut name gibt es in SVG
+                       tCircle.setAttribute('stroke-width', '5px');
+                       tCircle.setAttribute('oncontextmenu', 'changeCircle(this,1); event.preventDefault();');
+                       tCircle.setAttribute('ondblclick', 'setNodeName(actNode,window.prompt("New Name")); event.stopPropagation();'); //'posCircle(this,0,0);');
+                       tCircle.setAttribute('onclick', 'changeCircle(this,0); event.stopPropagation();');
+                       var tGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                       tGroup.appendChild(tCircle);
+                       svg.appendChild(tGroup);
+                       nodes.push(tCircle);
+                       if (nodes.length > 1 && boolVar) {
+                           var tLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                           var tLText = document.createElementNS('http://www.w3.org/2000/svg','text');
+                           var tLGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                           //  var tTemp = nodes.length % 3?nodes.length-2:0;   // Achtung: dreckig, weil int zu Boolean !
+                           tLine.setAttribute('x1', nodes[tTemp].getAttribute('cx'));
+                           tLine.setAttribute('y1', nodes[tTemp].getAttribute('cy'));
+                           tLine.setAttribute('x2', nodes[nodes.length - 1].getAttribute('cx'));
+                           tLine.setAttribute('y2', nodes[nodes.length - 1].getAttribute('cy'));
+                           tLine.setAttribute('stroke', 'green');
+                           tLine.setAttribute('name', 'edge');
+                           tLine.setAttribute('onclick','setWeight(this,true);');
+                           tLine.setAttribute('oncontextmenu', 'setTransitionFunction(this); event.preventDefault();');
+var weight = Math.sqrt(Math.pow(tLine.getAttribute('x2')-tLine.getAttribute('x1'),2)+Math.pow(tLine.getAttribute('y2')-tLine.getAttribute('y1'),2));
+                           tLine.setAttribute('data-weight', 1); // weight); // Attribut name gibt es in SVG
+                           tLine.setAttribute('stroke-width', '4px');
+                           tLText.setAttribute('x',parseInt((parseInt(tLine.getAttribute('x1'))+parseInt(tLine.getAttribute('x2')))/2)); // doppel parseInt ist unn�tig, sollte TextNode gelten
+                           tLText.setAttribute('y',parseInt((parseInt(tLine.getAttribute('y1'))+parseInt(tLine.getAttribute('y2')))/2));
+                           tLText.setAttribute('font-size',24);
+                           tLText.appendChild(document.createTextNode(parseInt(weight*10)/10));
+                           tLGroup.appendChild(tLine);
+                           tLGroup.appendChild(tLText);
+                           svg.appendChild(tLGroup); //svg.appendChild(tLine); svg.appendChild(tLText);
+                           edges.push(tLine);
+                           svg.removeChild(nodes[tTemp].parentNode);
+                           svg.appendChild(nodes[tTemp].parentNode);
+                           svg.removeChild(nodes[nodes.length - 1].parentNode);
+                           svg.appendChild(nodes[nodes.length - 1].parentNode);
+
+                       }
+                       var tText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                       tText.setAttribute('x', nodes[nodes.length - 1].getAttribute('cx') - 6);
+                       tText.setAttribute('y', nodes[nodes.length - 1].getAttribute('cy') - (-5));
+                       tText.setAttribute('font-size', 24);
+                       tText.setAttribute('font-weight', 'bold');
+                       tText.appendChild(document.createTextNode(nodes.length));
+                       nodes[nodes.length - 1].parentNode.appendChild(tText);
+                       return tCircle;  // - x , damit im Zentrum ; wie geht svg.innerHTML ??
+            }
+        function setBackground(name){
+            svg.style.backgroundImage = "url("+name+")";
+            
+        }
+         function addRectangle(x,y,width,height,value){
+                       var tR = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                       tR.setAttribute('x', x); //(nodes.length > 0 || !boolVar) ? ((Math.random() * 800 - 400) + parseInt(nodes[tTemp].getAttribute('cx'))) : 1050);//(Math.random() * 20 * (nodes.length+10))-(10 * (nodes.length+10))+450);
+                       tR.setAttribute('y', y);//(Math.random() * 20 * (nodes.length+10))-(10 * (nodes.length+10))+300);
+                       tR.setAttribute('width', width); // Math.random() * 20 + 20);
+                       tR.setAttribute('height', height);
+                       tR.setAttribute('stroke', 'red');
+                       tR.setAttribute('fill', 'lightblue');
+                       tR.setAttribute('data-visited', 'false');// Attribut name gibt es in SVG
+                       tR.setAttribute('stroke-width', '3px');
+                       //tCircle.setAttribute('oncontextmenu', 'changeCircle(this,1); event.preventDefault();');
+                       //tCircle.setAttribute('ondblclick', 'setNodeName(actNode,window.prompt("New Name")); event.stopPropagation();'); //'posCircle(this,0,0);');
+                       //tCircle.setAttribute('onclick', 'changeCircle(this,0); event.stopPropagation();');
+                       var tGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                       tGroup.appendChild(tR);
+                       value = ""+value;
+                       var tText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                       tText.setAttribute('x', x + width/2 - value.length*5);
+                       tText.setAttribute('y', y + height/2 +12 ); //nodes[nodes.length - 1].getAttribute('cy') - (-5));
+                       tText.setAttribute('font-size', 24);
+                       tText.setAttribute('font-weight', 'bold');
+                       tText.appendChild(document.createTextNode(value));
+                       tGroup.appendChild(tText); //des[nodes.length - 1].parentNode.appendChild(tText);
+                       svg.appendChild(tGroup); return tR;  // - x , damit im Zentrum ; wie geht svg.innerHTML ??
+            }
+    
+    
+    
+    
+            function help(){
+                console.log("####################");
+                console.log("# Der kürzeste Weg #");
+                console.log("####################");
+                console.log("");
+                console.log("1. setBackground('detmold.jpg') eintippen.");
+                console.log("2. Fenstergröße so einstellen (50%/67%),");
+                console.log("   dass Karte ohne Wiederholungen passt.");
+                console.log("3. Straßenkreuzungen anklicken und als");
+                console.log("   Knoten setzen.");
+                console.log("4. Kanten (Verbindungen) dazwischen");
+                console.log("   anlegen: ersten Knoten mit linker");
+                console.log("   Maustaste anklicken, dann zweiten");
+                console.log("   Knoten mit rechter Maustaste.");
+                console.log("5. Start- und Endknoten für Berechnung");
+                console.log("   auswählen: Endknoten anklicken, dann");
+                console.log("   Menü öffnen durch Klick auf eine freie");
+                console.log("   Stelle in der Karte und Ziel festlegen.");
+                console.log("   Dann Startknoten anklicken, dann Button");
+                console.log("   Dijkstra unter der Karte anklicken.");
+                console.log("6. Im Log sieht man den Algorithmus.");
+                console.log("   Auf der Karte sieht man den kürzesten");
+                console.log("   Weg und danach die zwischendurch besuchten");
+                console.log("   und aktualisierten Knoten.");
+                console.log("   BITTE WARTE, BIS DIE ANIMATION FERTIG IST!");
+                console.log("7. Nach Ergänzungen und vor dem nächsten");
+                console.log("   Durchlauf Button Reset unten anklicken.");
+                console.log("");
+                console.log("8. Bonus: Es kommt vor, dass nicht alle Wege");
+                console.log("   gleich schnell sind: Durch Klicken auf die");
+                console.log("   Kanten mit linker Maustaste kann man das");
+                console.log("   Gewicht anpassen: Je größer das Gewicht");
+                console.log("   (z.B. 3 statt 1), desto langsamer ist der");                
+                console.log("   jeweilige Teilabschnitt, und je kleiner");
+                console.log("   (nicht 0!), desto schneller.");
+                console.log("");
+                console.log("   Bei Fehlermeldungen abbrechen und");
+                console.log("   ggf. Fenster erneut laden");
+
+
+            }
+        
+        </script>
+        <style>
+            ::-webkit-scrollbar {
+                width: 7px;
+                height: 7px;
+                background-color: rgba(55,55,55, 0.5);
+                border-radius: 100px;
+            }
+            ::-webkit-scrollbar:hover {
+                width: 7px;
+                background: #aaaaaa;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: rgba(85,85,85, 0.5);
+                border-radius: 100px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover,
+            ::-webkit-scrollbar-thumb:active  {
+                background: #eeeeee;
+            }
+
+        </style>
+
+    </head>
+    <body style="width: 99%; height: 97%;">
+        <!--input id="draw" type="checkbox">Draw  --> 
+        <div id="svgContainer" style="width:99%; height: 95%; overflow: auto;">
+            <svg width="140%" height="200%" xmlns:xlink="http://www.w3.org/1999/xlink"
+                 baseProfile="full" zoomAndPan="magnify" id="svg"
+                 preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" 
+                 onclick="showPopup(); clickX = event.clientX; clickY = event.clientY; //drawLine(event);/*line.setAttribute('points', line.getAttribute('points') + ' ' + event.clientX + ',' + event.clientY);*/"
+                 onMouseMove="// if (draw.checked)
+                              // line.setAttribute('points', line.getAttribute('points') + ' ' + event.clientX + ',' + event.clientY);"   
+                 style="background-color: grey;">
+            <!--circle cx="600" cy="200" r="100" stroke="orange" stroke-width="5px" fill="blue"
+                    onclick="drawLine(event); //window.alert('Click'); pointer.setAttribute('x2','700px'); pointer.setAttribute('y2','200px');"
+                    />
+            <line id="pointer" x1="600" y1="200" x2="600" y2="100" stroke="yellow" stroke-width="3px"/>
+            <path fill="none" d="M 221.0 116.0 C 249.0 107.0 249.0 107.0 249.0 107.0 C 267.0 105.0 267.0 
+                  105.0 267.0 105.0 C 335.0 106.0 335.0 106.0 335.0 106.0 C 360.0 117.0 360.0 117.0 360.0 
+                  117.0 C 377.0 132.0 377.0 132.0 377.0 132.0 C 397.0 173.0 397.0 173.0 397.0 173.0 C 394.0 
+                  200.0 394.0 200.0 394.0 200.0 C 375.0 217.0 375.0 217.0 375.0 217.0 C 359.0 226.0 359.0 
+                  226.0 359.0 226.0 C 310.0 244.0 310.0 244.0 310.0 244.0 C 305.0 233.0 305.0 233.0 305.0 
+                  233.0 C 313.0 215.0 313.0 215.0 313.0 215.0 C 326.0 197.0 326.0 197.0 326.0 197.0 C 355.0 
+                  172.0 355.0 172.0 355.0 172.0 C 372.0 162.0 372.0 162.0 372.0 162.0 C 382.0 160.0 382.0 
+                  160.0 382.0 160.0 C 398.0 161.0 398.0 161.0 398.0 161.0 C 412.0 168.0 412.0 168.0 412.0 
+                  168.0 C 458.0 215.0 458.0 215.0 458.0 215.0 C 492.0 238.0 492.0 238.0 492.0 238.0 C 502.0 
+                  240.0 502.0 240.0 502.0 240.0 C 514.0 237.0 514.0 237.0 514.0 237.0 C 541.0 212.0 541.0 
+                  212.0 541.0 212.0" stroke="#ff0000"/>
+            <path fill="none" d="M 104.0 194.0 C 176.0 261.0 17.0 336.0 161.0 329.0 C 305.0 322.0 239.0 
+                  389.0 316.0 342.0 C 393.0 295.0 383.0 375.0 416.0 302.0 C 449.0 229.0 375.0 112.0 181.0 
+                  167.0" stroke="#00ff00"/>
+            <polygon fill="none" stroke="green" stroke-width="10px" points="100,100 200,100 200,200 100,200"/>
+            <polyline id="line" fill="none" stroke="green" stroke-width="10px" points="100,100 200,100 200,200 100,200"/> 
+            <circle id="circle" cx="590" cy="390" r="20" stroke="blue"/>
+            <polyline id="parabel" fill="yellow" stroke="red" stroke-width="3px" points="50,300 50,295"></polyline-->
+            </svg></div><hr>
+        <!--input id="draw" type="checkbox">Draw 
+        <input id="fire" type="button" value="Fire!"
+               onclick="timer = setInterval(function () {
+                           i++;
+                           if (i > 50) {
+                               clearInterval(timer);
+                               window.alert('Pech. F5 dr�cken');
+                           }
+                           x += parseInt(xV.value);
+                           y += -parseInt(yV.value) + 0.0981 * i * i;
+                           parabel.setAttribute('points', parabel.getAttribute('points') + ' ' + x + ',' + y);
+                           if (x > 590 && x < 630 && y > 390 && y < 430) {
+                               clearInterval(timer);
+                               window.alert('BINGO!!');
+                           }
+                       }, 100);
+               "
+               >
+        <input type="button" disabled value="Add SVG Random Line"
+               onclick="
+                       var tLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                       tLine.setAttribute('x1', Math.random() * 800);
+                       tLine.setAttribute('y1', Math.random() * 600);
+                       tLine.setAttribute('x2', Math.random() * 800);
+                       tLine.setAttribute('y2', Math.random() * 600);
+                       tLine.setAttribute('stroke', 'red');
+                       tLine.setAttribute('name', 'line1'); // Attribut name gibt es in SVG
+                       tLine.setAttribute('stroke-width', '2px');
+                       svg.appendChild(tLine);
+               "-->
+        <!--input type="button" value="Move BT" onclick="logIt = false; prepare2BT(50); moveBT(150);"-->
+        <input type="button" style="font-size:28px;" value="Label aus" onclick="hideWeights();">
+        <input type="button" style="font-size:28px;" value="Distanzen an" onclick="showWeights(); updateEdgesDistance();">
+        <input type="button" style="font-size:28px;" value="Gewichte an" onclick="showWeights(); updateEdgesWeight();">
+        &nbsp;&nbsp;&nbsp;<input id="resetGraphID" style="font-size:28px; background-color: orange;" type="button" onclick="resetGraph();" value="Reset">
+        <!--input id="loadGraphID" type="button" onclick="load_Graph();" value="Load Graph">
+        <input id="saveGraphID" type="button" onclick="save_Graph();" value="Save Graph">
+        <input id="searchGraphDFSID" type="button" onclick="if(actNode === null) actNode = nodes[0];searchGraphDFS(actNode);" value="Traverse Graph via DFS 'Tiefensuche'">
+        <input id="searchGraphBFSID" type="button" onclick="if(actNode === null) actNode = nodes[0];searchGraphBFS(actNode);" value="Traverse  via BFS 'Breitensuche'"-->
+        &nbsp;&nbsp;&nbsp;<input id="searchShortestWayID" type="button" style="font-size:28px;" onclick="if (actNode === null) window.alert('No Node selected'); else {searchShortestWay(actNode,toDestination); /*goBack(actNode,nodes[0]);*/}" value="Dijkstra vom aktiven Knoten. SETZE ERST ZIEL!!!">
+        <div   id="popup" style="display: none; font-size: 3em; z-index: 100; position: fixed; top: 15%; left: 25%; width: 50%; height: 65%; opacity: 0.8; background: white;">
+            <button style="font-size: 32px;" onclick="var ci= addNode(true);  posCircle(ci,(clickX+svgContainer.scrollLeft)*scale,(clickY+svgContainer.scrollTop)*scale); hidePopup();">Ersten Knoten setzen</button><br><br>
+            <button style="font-size: 40px;" onclick="var ci= addNode(false); posCircle(ci,(clickX+svgContainer.scrollLeft)*scale,(clickY+svgContainer.scrollTop)*scale); hidePopup();">Weiteren Knoten setzen</button><br><br>
+            <!--button style="font-size: 32px;" onclick="var ci= actNode; posCircle(ci,(clickX+svgContainer.scrollLeft)*scale,(clickY+svgContainer.scrollTop)*scale); hidePopup();">Pos act Node here</button-->
+            <button style="font-size: 32px;" onclick="setNodeName(actNode,window.prompt('New Name')); event.stopPropagation(); hidePopup();">Aktiven Knoten umbenennen</button><br><br>
+            <!--button style="font-size: 32px;" onclick="changeCircle(actNode,2);//f1);f211);">Add Edge to red marked Nodes</button-->
+            <button style="font-size: 32px;" onclick="toDestination = actNode; searchShortestWayID.value = 'Search Dijkstra from act to '+getNodeName(toDestination); hidePopup();">Aktiven Knoten als Ziel setzen</button>
+            <!--button style="font-size: 32px;" onclick="showDepth(actNode); hidePopup();">Show Depth of Nodes</button-->
+            <br<br><br><br><button style="font-size: 64px;" onclick="hidePopup(); ">Abbrechen</button>
+            <!--button style="font-size: 32px;" onclick="scale = parseFloat(window.prompt('Set Zoom Factor'));">Set Zoom Factor</button-->
+        </div>
+        <script>
+            window.onload = function(){window.alert("Konsole öffnen mit Strg+Umschalt+i. Dort help() eingeben.")};
+            function showPopup () {popup.style.display = "block"; }
+            function hidePopup () {popup.style.display = "none"; }      
+            //function addNodeXY (e,separate) {addNode(separate); hidePopup();}
+            window.onkeydown = function (e) {
+                //points += 10;
+                //counter.innerHTML = points;
+                //pirate.style.left = parseInt(pirate.style.left)+ Math.random()*30-15 + "px";
+                if (e.keyCode === 27) hidePopup(); 
+                if (e.keyCode === 37) {
+                    posCircle(nodes[tTemp],-5,0.5); e.preventDefault(); //goLeft();
+                } else
+                if (e.keyCode === 39) {
+                    posCircle(nodes[tTemp],5,0.5); e.preventDefault(); //goRight();
+                }
+                if (e.keyCode === 38) {
+                    posCircle(nodes[tTemp],0.5,-5); e.preventDefault(); //goUp();
+                }
+                if (e.keyCode === 40) {
+                    posCircle(nodes[tTemp],0.5,5);//goDown();
+                  e.preventDefault(); }// verhindert Scrollen per Tastendruck ?
+           };
+        </script>
+    </body>  
+</html>

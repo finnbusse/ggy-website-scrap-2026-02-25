@@ -1,0 +1,222 @@
+<html>
+<head>
+<meta name="GENERATOR" content="MatchWare Mediator 8.0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Seite1</title>
+
+<SCRIPT LANGUAGE="JavaScript">
+function IsOldBrowser() { return true; }
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JavaScript" SRC="md8lib.js"></SCRIPT>
+
+<script>
+</script>
+
+<style type="text/css">* {cursor: url(android.png), auto !important;}</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+
+function seite1_toslzl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion07.Start();
+ clickobj=FindObject( "seite1_toslzl");
+}
+
+function seite1_toslzl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_toslzl")) return;
+ insideobj=FindObject( "seite1_toslzl");
+ actions.seite1_aktion32.Start();
+}
+
+function seite1_tobetl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion10.Start();
+ clickobj=FindObject( "seite1_tobetl");
+}
+
+function seite1_tobetl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tobetl")) return;
+ insideobj=FindObject( "seite1_tobetl");
+ actions.seite1_aktion06.Start();
+}
+
+function seite1_tomenl_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion12.Start();
+ clickobj=FindObject( "seite1_tomenl");
+}
+
+function seite1_tomenl_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tomenl")) return;
+ insideobj=FindObject( "seite1_tomenl");
+ actions.seite1_aktion11.Start();
+}
+
+function seite1_tohaul_MouseDown() {
+ if ( ! initialized) return;
+ actions.seite1_aktion15.Start();
+ clickobj=FindObject( "seite1_tohaul");
+}
+
+function seite1_tohaul_MoveIn() {
+ if ( ! initialized) return;
+ if ( insideobj == FindObject( "seite1_tohaul")) return;
+ insideobj=FindObject( "seite1_tohaul");
+ actions.seite1_aktion13.Start();
+}
+
+function OnPageReady() {
+
+ actions.seite1_aktion01.Start();
+ actions.seite1_aktion02.Start();
+ actions.seite1_aktion04.Start();
+ actions.seite1_aktion03.Start();
+ actions.seite1_aktion05.Start();
+ actions.seite1_aktion17.Start();
+ actions.seite1_aktion25.Start();
+ actions.seite1_aktion27.Start();
+ actions.seite1_aktion29.Start();
+ initialized = true;
+}
+
+
+function Initialize() {
+   if ( IsOldBrowser()) {
+     window.location = "oldbrowser.htm";
+     return;
+   }
+   else    if ( window.parent == self) {
+     FrameIt( "seite1.htm");
+
+     return;
+   }
+   else  BrowserInit();
+x = new Array( 792,0);
+y = new Array( 320,320);
+var seite1_anipfad01 = new AnimationPath( x,y);
+
+ actions.seite1_aktion32 = new ShowAction( "seite1_tuer_slz", 0,  effects.Normal );
+ actions.seite1_aktion07 = new HttpAction( "\"slz.htm\"",true)
+FindObject( "seite1_toslzl").onmousedown = function(){ seite1_toslzl_MouseDown();  };
+ FindObject( "seite1_toslzl").onmousemove = function(){ seite1_toslzl_MoveIn(); };
+ actions.seite1_aktion06 = new ShowAction( "seite1_tuer_betreuung", 0,  effects.Normal );
+ actions.seite1_aktion10 = new HttpAction( "\" betreuung.htm\"",true)
+FindObject( "seite1_tobetl").onmousedown = function(){ seite1_tobetl_MouseDown();  };
+ FindObject( "seite1_tobetl").onmousemove = function(){ seite1_tobetl_MoveIn(); };
+ actions.seite1_aktion11 = new ShowAction( "seite1_tuer_mensa", 0,  effects.Normal );
+ actions.seite1_aktion12 = new HttpAction( "\"mensa.htm\"",true)
+FindObject( "seite1_tomenl").onmousedown = function(){ seite1_tomenl_MouseDown();  };
+ FindObject( "seite1_tomenl").onmousemove = function(){ seite1_tomenl_MoveIn(); };
+ actions.seite1_aktion13 = new ShowAction( "seite1_tuer_hausaufgaben", 0,  effects.Normal );
+ actions.seite1_aktion15 = new HttpAction( "\"hausaufgaben.htm\"",true)
+FindObject( "seite1_tohaul").onmousedown = function(){ seite1_tohaul_MouseDown();  };
+ FindObject( "seite1_tohaul").onmousemove = function(){ seite1_tohaul_MoveIn(); };
+ actions.seite1_aktion01 = new AnimationAction( "seite1_aktion01", "seite1_panraum3", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion02 = new AnimationAction( "seite1_aktion02", "seite1_tuer_slz", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion04 = new AnimationAction( "seite1_aktion04", "seite1_tuer_betreuung", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion03 = new AnimationAction( "seite1_aktion03", "seite1_tuer_mensa", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion05 = new AnimationAction( "seite1_aktion05", "seite1_tuer_hausaufgaben", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion17 = new AnimationAction( "seite1_aktion17", "seite1_toslzl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion25 = new AnimationAction( "seite1_aktion25", "seite1_tobetl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion27 = new AnimationAction( "seite1_aktion27", "seite1_tomenl", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ actions.seite1_aktion29 = new AnimationAction( "seite1_aktion29", "seite1_tohaul", seite1_anipfad01, 15000, false, false, false, ANIM_STYLE_FLYFROM);
+
+ OnPageReady();
+}
+</SCRIPT>
+
+</head>
+
+<body onload="Initialize();"  bgcolor="#FFFFFF">
+
+<DIV id="seite1_panraum3"
+     STYLE="position:absolute; left:0px; top:0px; width:1600px; height:250px; ">
+<img src="000001.jpg"
+     width="1600"
+     height="250"
+>
+</DIV>
+
+<DIV id="seite1_tuer_slz"
+     STYLE="position:absolute; visibility: hidden; left:148px; top:82px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_betreuung"
+     STYLE="position:absolute; visibility: hidden; left:555px; top:78px; width:100px; height:110px; ">
+<img src="000003.png"
+     width="100"
+     height="110"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tuer_mensa"
+     STYLE="position:absolute; visibility: hidden; left:948px; top:84px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_tuer_hausaufgaben"
+     STYLE="position:absolute; visibility: hidden; left:1352px; top:86px; width:100px; height:108px; ">
+<img src="000002.jpg"
+     width="100"
+     height="108"
+>
+</DIV>
+
+<DIV id="seite1_toslzl"
+     STYLE="position:absolute; left:124px; top:52px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tobetl"
+     STYLE="position:absolute; left:529px; top:50px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tomenl"
+     STYLE="position:absolute; left:924px; top:56px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+<DIV id="seite1_tohaul"
+     STYLE="position:absolute; left:1327px; top:55px; width:150px; height:165px; ">
+<img src="000006.png"
+     width="150"
+     height="165"
+     onload="IEPNGAlpha( this)"
+>
+</DIV>
+
+</body>
+</html>
