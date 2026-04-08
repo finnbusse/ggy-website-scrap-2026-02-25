@@ -3,3 +3,9 @@ __pycache__/
 mirror/
 # Scraped archives exceed GitHub's 2 GB LFS per-object limit – never commit
 scrap_*.tar.gz
+# Generated outputs from compare_scrapes.py and extract_content.py
+content.db
+content.jsonl
+comparison_report.json
+missing_in_latest.txt
+unified_sitemap.xml
